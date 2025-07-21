@@ -2,7 +2,7 @@ server:
   port: "8080"
 
 database:
-  host: "postgres_db"
+  host: "localhost"
   port: "5432"
   user: "user"
   password: "password"
@@ -10,7 +10,7 @@ database:
   sslmode: "disable"
 
 redis:
-  addr: "redis_cache:6379"
+  addr: "localhost:6379"
   password: ""
   db: 0
 
