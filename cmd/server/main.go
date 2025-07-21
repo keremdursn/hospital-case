@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/database"
+	"github.com/keremdursn/hospital-case/internal/models"
 )
 
 func main() {
@@ -20,15 +21,15 @@ func main() {
 	database.ConnectRedis(&cfg)
 
 	err = database.DB.AutoMigrate(
-	// &models.City{},
-	// &models.District{},
-	// &models.Hospital{},
-	// &models.Authority{},
-	// &models.Polyclinic{},
-	// &models.HospitalPolyclinic{},
-	// &models.JobGroup{},
-	// &models.Title{},
-	// &models.Staff{},
+		&models.City{},
+		&models.District{},
+		&models.Hospital{},
+		&models.Authority{},
+		&models.Polyclinic{},
+		&models.HospitalPolyclinic{},
+		&models.JobGroup{},
+		&models.Title{},
+		&models.Staff{},
 	)
 	if err != nil {
 		log.Fatal("cannot migrate database: ", err)
@@ -37,7 +38,6 @@ func main() {
 	// Create a new Fiber instance
 	app := fiber.New()
 
-	
 	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))
 }
