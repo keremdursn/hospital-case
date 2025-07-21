@@ -7,6 +7,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/models"
+	"github.com/keremdursn/hospital-case/internal/router"
 )
 
 func main() {
@@ -37,6 +38,8 @@ func main() {
 
 	// Create a new Fiber instance
 	app := fiber.New()
+
+	router.AuthRoutes(app, &cfg)
 
 	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))

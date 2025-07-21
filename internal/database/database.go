@@ -31,6 +31,13 @@ func Connect(config *config.Config) {
 	fmt.Println("Database connection successfully opened")
 }
 
+func GetDB() *gorm.DB {
+	if DB == nil {
+		log.Fatal("Database connection is not initialized")
+	}
+	return DB
+}
+
 func ConnectRedis(config *config.Config) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     config.Redis.Addr,
