@@ -40,6 +40,7 @@ func main() {
 	app := fiber.New()
 
 	router.AuthRoutes(app, &cfg)
+	router.SubUserRoutes(app, &cfg)
 
 	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))

@@ -21,6 +21,7 @@ func SubUserRoutes(app *fiber.App, cfg *config.Config) {
 	subuserGroup := api.Group("/subuser")
 
 	subuserGroup.Post("/", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.CreateSubUser)
-	subuserGroup.Post("/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.UpdateSubUser)
-	subuserGroup.Post("/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.DeleteSubUser)
+	subuserGroup.Get("/subusers", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.ListSubUsers)
+	subuserGroup.Put("/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.UpdateSubUser)
+	subuserGroup.Delete("/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.DeleteSubUser)
 }
