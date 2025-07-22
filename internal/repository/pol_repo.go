@@ -12,6 +12,15 @@ type PolyclinicRepository interface {
 	IsPolyclinicAlreadyAdded(hospitalID, PolyclinicID uint) (bool, error)
 	GetPolyclinicByID(PolyclinicID uint) (*models.Polyclinic, error)
 	CreateHospitalPolyclinic(hp *models.HospitalPolyclinic) error
+	CountByHospitalID(hospitalID uint) (int64, error)
+	GetPaginatedByHospitalID(hospitalID uint, page, size int) ([]models.HospitalPolyclinic, error)
+	CountPersonnel(hospitalPolyclinicID uint) (int64, error)
+	GetPersonnelGroupCounts(hospitalPolyclinicID uint) ([]struct {
+		GroupName string
+		Count     int
+	}, error)
+	GetHospitalPolyclinicByID(id uint) (*models.HospitalPolyclinic, error)
+	Delete(hp *models.HospitalPolyclinic) error
 }
 
 type polyclinicRepository struct {
@@ -49,4 +58,62 @@ func (r *polyclinicRepository) GetPolyclinicByID(PolyclinicID uint) (*models.Pol
 
 func (r *polyclinicRepository) CreateHospitalPolyclinic(hp *models.HospitalPolyclinic) error {
 	return r.db.Create(hp).Error
+}
+
+func (r *polyclinicRepository) CountByHospitalID(hospitalID uint) (int64, error) {
+	var total int64
+	err := r.db.Model(&models.HospitalPolyclinic{}).
+		Where("hospital_id = ?", hospitalID).Count(&total).Error
+	return total, err
+}
+
+// Belirli sayfa ve boyutta poliklinik kaydı çekiliyor
+func (r *polyclinicRepository) GetPaginatedByHospitalID(hospitalID uint, page, size int) ([]models.HospitalPolyclinic, error) {
+	var hps []models.HospitalPolyclinic
+	err := r.db.Where("hospital=id = ?", hospitalID).
+		Offset((page - 1) * size).Limit(size).
+		Find(&hps).Error
+	return hps, err
+}
+
+// Toplam personel sayısı
+func (r *polyclinicRepository) CountPersonnel(hospitalPolyclinicID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Staff{}).
+		Where("hospital_polyclinic_id = ?", hospitalPolyclinicID).
+		Count(&count).Error
+
+	return count, err
+}
+
+// Meslek grubu dağılımı
+func (r *polyclinicRepository) GetPersonnelGroupCounts(hospitalPolyclinicID uint) ([]struct {
+	GroupName string
+	Count     int
+}, error) {
+	var groupCounts []struct {
+		GroupName string
+		Count     int
+	}
+
+	err := r.db.Table("staffs").
+		Select("job_groups.name as group_name, COUNT(*) as count").
+		Joins("JOIN job_groups ON staffs.job_group_id = job_groups.id").
+		Where("staffs.hospital_polyclinic_id = ?", hospitalPolyclinicID).
+		Group("job_groups.name").
+		Scan(&groupCounts).Error
+
+	return groupCounts, err
+}
+
+func (r *polyclinicRepository) GetHospitalPolyclinicByID(id uint) (*models.HospitalPolyclinic, error) {
+	var hp models.HospitalPolyclinic
+	if err := r.db.First(&hp, id).Error; err != nil {
+		return nil, err
+	}
+	return &hp, nil
+}
+
+func (r *polyclinicRepository) Delete(hp *models.HospitalPolyclinic) error {
+	return r.db.Delete(hp).Error
 }

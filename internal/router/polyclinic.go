@@ -20,8 +20,9 @@ func PolyclinicRoutes(app *fiber.App, cfg *config.Config) {
 
 	polyclinicGroup := api.Group("/polyclinic")
 
-	// 
+	//
 	polyclinicGroup.Get("/", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), polyclinicHandler.ListAllPolyclinics)
 	polyclinicGroup.Post("/hospital-polyclinics", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), polyclinicHandler.AddHospitalPolyclinic)
-	// polyclinicGroup.Delete("/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.DeleteSubUser)
+	polyclinicGroup.Get("/hospital-polyclinics", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), polyclinicHandler.ListHospitalPolyclinic)
+	polyclinicGroup.Delete("/hospital-polyclinics/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), polyclinicHandler.RemoveHospitalPolyclinic)
 }
