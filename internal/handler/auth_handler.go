@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/keremdursn/hospital-case/internal/config"
+	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/usecase"
 )
 
@@ -19,7 +20,7 @@ func NewAuthHandler(authUsecase usecase.AuthUsecase, cfg *config.Config) *AuthHa
 }
 
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	var req usecase.RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse request",
@@ -39,7 +40,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var req usecase.LoginRequest
+	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse request",
@@ -57,7 +58,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
-	var req usecase.ForgotPasswordRequest
+	var req dto.ForgotPasswordRequest
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
@@ -71,7 +72,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
-	var req usecase.ResetPasswordRequest
+	var req dto.ResetPasswordRequest
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}

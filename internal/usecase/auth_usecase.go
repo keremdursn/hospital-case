@@ -7,6 +7,7 @@ import (
 
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/database"
+	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/pkg/utils"
@@ -14,10 +15,10 @@ import (
 )
 
 type AuthUsecase interface {
-	Register(req *RegisterRequest) (*models.Authority, error)
-	Login(req *LoginRequest, cfg *config.Config) (*LoginResponse, error)
-	ForgotPassword(req *ForgotPasswordRequest) (*ForgotPasswordResponse, error)
-	ResetPassword(req *ResetPasswordRequest) error
+	Register(req *dto.RegisterRequest) (*models.Authority, error)
+	Login(req *dto.LoginRequest, cfg *config.Config) (*dto.LoginResponse, error)
+	ForgotPassword(req *dto.ForgotPasswordRequest) (*dto.ForgotPasswordResponse, error)
+	ResetPassword(req *dto.ResetPasswordRequest) error
 }
 
 type authUsecase struct {
@@ -28,47 +29,7 @@ func NewAuthUsecase(r repository.AuthRepository) AuthUsecase {
 	return &authUsecase{authRepo: r}
 }
 
-type RegisterRequest struct {
-	HospitalName   string
-	TaxNumber      string
-	HospitalEmail  string
-	HospitalPhone  string
-	Address        string
-	CityID         uint
-	DistrictID     uint
-	AuthorityFName string
-	AuthorityLName string
-	AuthorityTC    string
-	AuthorityEmail string
-	AuthorityPhone string
-	Password       string
-}
-
-type LoginRequest struct {
-	Credential string
-	Password   string
-}
-
-type LoginResponse struct {
-	Token string `json:"token"`
-}
-
-type ForgotPasswordRequest struct {
-	Phone string `json:"phone"`
-}
-
-type ForgotPasswordResponse struct {
-	Code string `json:"code"`
-}
-
-type ResetPasswordRequest struct {
-	Phone             string `json:"phone"`
-	Code              string `json:"code"`
-	NewPassword       string `json:"new_password"`
-	RepeatNewPassword string `json:"repeat_new_password"`
-}
-
-func (u *authUsecase) Register(req *RegisterRequest) (*models.Authority, error) {
+func (u *authUsecase) Register(req *dto.RegisterRequest) (*models.Authority, error) {
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
@@ -114,7 +75,7 @@ func (u *authUsecase) Register(req *RegisterRequest) (*models.Authority, error) 
 	return authority, nil
 }
 
-func (u *authUsecase) Login(req *LoginRequest, cfg *config.Config) (*LoginResponse, error) {
+func (u *authUsecase) Login(req *dto.LoginRequest, cfg *config.Config) (*dto.LoginResponse, error) {
 	authority, err := u.authRepo.GetAuthorityByEmailOrPhone(req.Credential)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -134,10 +95,10 @@ func (u *authUsecase) Login(req *LoginRequest, cfg *config.Config) (*LoginRespon
 		return nil, err
 	}
 
-	return &LoginResponse{Token: token}, nil
+	return &dto.LoginResponse{Token: token}, nil
 }
 
-func (u *authUsecase) ForgotPassword(req *ForgotPasswordRequest) (*ForgotPasswordResponse, error) {
+func (u *authUsecase) ForgotPassword(req *dto.ForgotPasswordRequest) (*dto.ForgotPasswordResponse, error) {
 	_, err := u.authRepo.GetAuthorityByPhone(req.Phone)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -153,10 +114,10 @@ func (u *authUsecase) ForgotPassword(req *ForgotPasswordRequest) (*ForgotPasswor
 		return nil, err
 	}
 
-	return &ForgotPasswordResponse{Code: code}, nil
+	return &dto.ForgotPasswordResponse{Code: code}, nil
 }
 
-func (u *authUsecase) ResetPassword(req *ResetPasswordRequest) error {
+func (u *authUsecase) ResetPassword(req *dto.ResetPasswordRequest) error {
 	if req.NewPassword != req.RepeatNewPassword {
 		return errors.New("passwords do not match")
 	}
