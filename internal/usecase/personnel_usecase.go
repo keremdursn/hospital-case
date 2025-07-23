@@ -1,8 +1,11 @@
 package usecase
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 
+	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/repository"
@@ -27,6 +30,19 @@ func NewPersonnelUsecase(repo repository.PersonnelRepository) PersonnelUsecase {
 }
 
 func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
+	ctx := context.Background()
+	cacheKey := "job_groups"
+
+	// Önce Redis'te var mı bak
+	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	if err == nil && cached != "" {
+		var resp []dto.JobGroupLookup
+		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
+			return resp, nil
+		}
+	}
+
+	// 2. Yoksa DB'den çek
 	groups, err := u.repo.GetAllJobGroups()
 	if err != nil {
 		return nil, err
@@ -39,10 +55,28 @@ func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
 			Name: g.Name,
 		})
 	}
+
+	// 3. Redis'e yaz
+	if data, err := json.Marshal(resp); err == nil {
+		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err() // Hata olursa cache'siz devam et
+	}
+
 	return resp, nil
 }
 
 func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLookup, error) {
+	ctx := context.Background()
+	cacheKey := "titles_by_jobgroup_" + string(rune(jobGroupID))
+
+	// Önce Redis'te var mı bak
+	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	if err == nil && cached != "" {
+		var resp []dto.TitleLookup
+		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
+			return resp, nil
+		}
+	}
+
 	titles, err := u.repo.GetAllTitlesByJobGroup(jobGroupID)
 	if err != nil {
 		return nil, err
@@ -55,6 +89,12 @@ func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLook
 			Name: t.Name,
 		})
 	}
+
+	// Redis'e yaz
+	if data, err := json.Marshal(resp); err == nil {
+		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err()
+	}
+
 	return resp, nil
 }
 
@@ -274,25 +314,25 @@ func (u *personnelUsecase) ListStaff(hospitalID uint, filter dto.StaffListFilter
 		}
 
 		resp = append(resp, dto.StaffResponse{
-			ID:        s.ID,
-			FirstName: s.FirstName,
-			LastName:  s.LastName,
-			TC:        s.TC,
-			Phone:     s.Phone,
-			JobGroupID: jobGroup.ID,
-			JobGroupName: jobGroup.Name,
-			TitleID: title.ID,
-			TitleName: title.Name,
+			ID:                   s.ID,
+			FirstName:            s.FirstName,
+			LastName:             s.LastName,
+			TC:                   s.TC,
+			Phone:                s.Phone,
+			JobGroupID:           jobGroup.ID,
+			JobGroupName:         jobGroup.Name,
+			TitleID:              title.ID,
+			TitleName:            title.Name,
 			HospitalPolyclinicID: s.HospitalPolyclinicID,
-			PolyclinicName: polyName,
-			WorkingDays: s.WorkingDays,
+			PolyclinicName:       polyName,
+			WorkingDays:          s.WorkingDays,
 		})
 	}
 
 	return &dto.StaffListResponse{
 		Staff: resp,
 		Total: int(totalCount),
-		Page: page,
-		Size: size,
+		Page:  page,
+		Size:  size,
 	}, nil
 }

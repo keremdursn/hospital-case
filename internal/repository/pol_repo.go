@@ -70,7 +70,7 @@ func (r *polyclinicRepository) CountByHospitalID(hospitalID uint) (int64, error)
 // Belirli sayfa ve boyutta poliklinik kaydı çekiliyor
 func (r *polyclinicRepository) GetPaginatedByHospitalID(hospitalID uint, page, size int) ([]models.HospitalPolyclinic, error) {
 	var hps []models.HospitalPolyclinic
-	err := r.db.Where("hospital=id = ?", hospitalID).
+	err := r.db.Where("hospital_id = ?", hospitalID).
 		Offset((page - 1) * size).Limit(size).
 		Find(&hps).Error
 	return hps, err

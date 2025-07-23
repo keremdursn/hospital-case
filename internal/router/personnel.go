@@ -16,12 +16,21 @@ func PersonnelRoutes(app *fiber.App, cfg *config.Config) {
 	personnelUsecase := usecase.NewPersonnelUsecase(personnelRepo)
 	personnelHandler := handler.NewPersonnelHandler(personnelUsecase, cfg)
 
+	// Location modülü bağımlılıkları
+	locationRepo := repository.NewLocationRepository()
+	locationUsecase := usecase.NewLocationUsecase(locationRepo)
+	locationHandler := handler.NewLocationHandler(locationUsecase)
+
 	api := app.Group("/api")
+
+	// Location endpointleri
+	api.Get("/cities", locationHandler.ListCities)
+	api.Get("/districts", locationHandler.ListDistrictsByCity)
 
 	personnelGroup := api.Group("/personnel")
 
 	personnelGroup.Get("/job-groups", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), personnelHandler.ListAllJobGroups)
-	personnelGroup.Get("/titles", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), personnelHandler.ListTitleByJobGroup)
+	personnelGroup.Get("/titles/:job_group_id", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), personnelHandler.ListTitleByJobGroup)
 
 	personnelGroup.Post("/staff", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.AddStaff)
 	personnelGroup.Put("/staff/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.UpdateStaff)

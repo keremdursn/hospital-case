@@ -18,7 +18,7 @@ func AuthRoutes(app *fiber.App, cfg *config.Config) {
 
 	api := app.Group("/api")
 
-	authGroup := app.Group("/auth")
+	authGroup := api.Group("/auth")
 
 	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/login", authHandler.Login)

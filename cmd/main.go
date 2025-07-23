@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -43,6 +44,10 @@ func main() {
 	router.SubUserRoutes(app, &cfg)
 	router.PolyclinicRoutes(app, &cfg)
 	router.PersonnelRoutes(app, &cfg)
+
+	for _, r := range app.GetRoutes() {
+		fmt.Println(r.Method, r.Path)
+	}
 
 	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))

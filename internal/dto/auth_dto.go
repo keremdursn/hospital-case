@@ -1,19 +1,19 @@
 package dto
 
 type RegisterRequest struct {
-	HospitalName   string
-	TaxNumber      string
-	HospitalEmail  string
-	HospitalPhone  string
-	Address        string
-	CityID         uint
-	DistrictID     uint
-	AuthorityFName string
-	AuthorityLName string
-	AuthorityTC    string
-	AuthorityEmail string
-	AuthorityPhone string
-	Password       string
+	HospitalName   string `json:"hospital_name"`
+	TaxNumber      string `json:"tax_number"`
+	HospitalEmail  string `json:"hospital_email"`
+	HospitalPhone  string `json:"hospital_phone"`
+	Address        string `json:"address"`
+	CityID         uint   `json:"city_id"`
+	DistrictID     uint   `json:"district_id"`
+	AuthorityFName string `json:"authority_fname"`
+	AuthorityLName string `json:"authority_lname"`
+	AuthorityTC    string `json:"authority_tc"`
+	AuthorityEmail string `json:"authority_email"`
+	AuthorityPhone string `json:"authority_phone"`
+	Password       string `json:"password"`
 }
 
 type LoginRequest struct {
