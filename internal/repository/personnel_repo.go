@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/keremdursn/hospital-case/internal/database"
+	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"gorm.io/gorm"
 )
@@ -22,6 +23,9 @@ type PersonnelRepository interface {
 	IsTCOrPhoneExistsExcludeID(id uint, tc, phone string) (bool, error)
 	UpdateStaff(staff *models.Staff) error
 	DeleteStaff(staff *models.Staff) error
+
+	ListStaffWithFilter(hospitalID uint, filter dto.StaffListFilter, page, size int) ([]models.Staff, error)
+	CountStaffWithFilter(hospitalID uint, filter dto.StaffListFilter) (int64, error)
 }
 
 type personnelRepository struct {
@@ -121,4 +125,59 @@ func (r *personnelRepository) UpdateStaff(staff *models.Staff) error {
 
 func (r *personnelRepository) DeleteStaff(staff *models.Staff) error {
 	return r.db.Delete(staff).Error
+}
+
+// Filtreli ve sayfalı personel listesini getirir
+func (r *personnelRepository) ListStaffWithFilter(hospitalID uint, filter dto.StaffListFilter, page, size int) ([]models.Staff, error) {
+	query := r.db.Model(&models.Staff{}).Where("hospital_id = ?", hospitalID)
+
+	// Filtreleme alanları
+	if filter.FirstName != "" {
+		query = query.Where("first_name ILIKE ?", "%"+filter.FirstName+"%")
+	}
+	if filter.LastName != "" {
+		query = query.Where("last_name ILIKE ?", "%"+filter.LastName+"%")
+	}
+	if filter.TC != "" {
+		query = query.Where("tc ILIKE ?", "%"+filter.TC+"%")
+	}
+	if filter.JobGroupID != nil {
+		query = query.Where("job_group_id = ?", *filter.JobGroupID)
+	}
+	if filter.TitleID != nil {
+		query = query.Where("title_id = ?", *filter.TitleID)
+	}
+
+	var staffs []models.Staff
+	// Sayfalama
+	if err := query.Offset((page - 1) * size).Limit(size).Find(&staffs).Error; err != nil {
+		return nil, err
+	}
+	return staffs, nil
+}
+
+// Aynı filtreyle toplam kayıt sayısını bulur
+func (r *personnelRepository) CountStaffWithFilter(hospitalID uint, filter dto.StaffListFilter) (int64, error) {
+	query := r.db.Model(&models.Staff{}).Where("hospital_id = ?", hospitalID)
+
+	// Filtreleme alanları
+	if filter.FirstName != "" {
+		query = query.Where("first_name ILIKE ?", "%"+filter.FirstName+"%")
+	}
+	if filter.LastName != "" {
+		query = query.Where("last_name ILIKE ?", "%"+filter.LastName+"%")
+	}
+	if filter.TC != "" {
+		query = query.Where("tc ILIKE ?", "%"+filter.TC+"%")
+	}
+	if filter.JobGroupID != nil {
+		query = query.Where("job_group_id = ?", *filter.JobGroupID)
+	}
+	if filter.TitleID != nil {
+		query = query.Where("title_id = ?", *filter.TitleID)
+	}
+
+	var totalCount int64
+	err := query.Count(&totalCount).Error
+	return totalCount, err
 }

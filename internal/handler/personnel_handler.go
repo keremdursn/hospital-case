@@ -103,3 +103,47 @@ func (h *PersonnelHandler) DeleteStaff(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff deleted"})
 }
+
+func (h *PersonnelHandler) ListStaff(c *fiber.Ctx) error {
+
+	// 1. Query parametrelerinden filtreleri ve sayfa/size al
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	size, _ := strconv.Atoi(c.Query("size", "10"))
+	firstName := c.Query("first_name", "")
+	lastName := c.Query("last_name", "")
+	tc := c.Query("tc", "")
+
+	// job_group_id ve title_id parse edilir
+	var jobGroupID *uint
+	if v := c.Query("job_group_id", ""); v != "" {
+		if id, err := strconv.ParseUint(v, 10, 64); err == nil && id > 0 {
+			jid := uint(id)
+			jobGroupID = &jid
+		}
+	}
+	var titleID *uint
+	if v := c.Query("title_id", ""); v != "" {
+		if id, err := strconv.ParseUint(v, 10, 64); err == nil && id > 0 {
+			tid := uint(id)
+			titleID = &tid
+		}
+	}
+
+	user := utils.GetUserInfo(c)
+	if user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	resp, err := h.usecase.ListStaff(user.HospitalID, dto.StaffListFilter{
+		FirstName:  firstName,
+		LastName:   lastName,
+		TC:         tc,
+		JobGroupID: jobGroupID,
+		TitleID:    titleID,
+	}, page, size)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(resp)
+}

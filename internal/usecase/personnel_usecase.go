@@ -15,6 +15,7 @@ type PersonnelUsecase interface {
 	AddStaff(req *dto.AddStaffRequest, hospitalID uint) (*dto.StaffResponse, error)
 	UpdateStaff(id uint, req *dto.UpdateStaffRequest, hospitalID uint) (*dto.StaffResponse, error)
 	DeleteStaff(id, hospitalID uint) error
+	ListStaff(hospitalID uint, filter dto.StaffListFilter, page, size int) (*dto.StaffListResponse, error)
 }
 
 type personnelUsecase struct {
@@ -203,7 +204,7 @@ func (u *personnelUsecase) UpdateStaff(id uint, req *dto.UpdateStaffRequest, hos
 	staff.HospitalPolyclinicID = req.HospitalPolyclinicID
 	staff.WorkingDays = req.WorkingDays
 
-	if err := u .repo.UpdateStaff(staff); err != nil {
+	if err := u.repo.UpdateStaff(staff); err != nil {
 		return nil, err
 	}
 
@@ -232,4 +233,66 @@ func (u *personnelUsecase) DeleteStaff(id, hospitalID uint) error {
 		return errors.New("forbidden: cannot delete staff from another hospital")
 	}
 	return u.repo.DeleteStaff(staff)
+}
+
+func (u *personnelUsecase) ListStaff(hospitalID uint, filter dto.StaffListFilter, page, size int) (*dto.StaffListResponse, error) {
+	// 1. Personelleri filtreyle listele
+	staffs, err := u.repo.ListStaffWithFilter(hospitalID, filter, page, size)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Toplam kayıt sayısını al
+	totalCount, err := u.repo.CountStaffWithFilter(hospitalID, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Dönüştürülecek response dizisi hazırlanıyor
+	resp := make([]dto.StaffResponse, 0, len(staffs))
+	for _, s := range staffs {
+		// Her staff için jobGroup ve title bilgilerini getir
+		jobGroup, err := u.repo.GetJobGroupByID(s.JobGroupID)
+		if err != nil {
+			return nil, errors.New("job group not found for staff")
+		}
+
+		title, err := u.repo.GetTitleByID(s.TitleID)
+		if err != nil {
+			return nil, errors.New("title not found for staff")
+		}
+
+		// Eğer poliklinik ID varsa, poliklinik adını al
+		var polyName *string
+		if s.HospitalPolyclinicID != nil {
+			hp, err := u.repo.GetHospitalPolyclinicByID(*s.HospitalPolyclinicID)
+			if err != nil {
+				return nil, err
+			}
+			p, _ := u.repo.GetPolyclinicByID(hp.PolyclinicID)
+			polyName = &p.Name
+		}
+
+		resp = append(resp, dto.StaffResponse{
+			ID:        s.ID,
+			FirstName: s.FirstName,
+			LastName:  s.LastName,
+			TC:        s.TC,
+			Phone:     s.Phone,
+			JobGroupID: jobGroup.ID,
+			JobGroupName: jobGroup.Name,
+			TitleID: title.ID,
+			TitleName: title.Name,
+			HospitalPolyclinicID: s.HospitalPolyclinicID,
+			PolyclinicName: polyName,
+			WorkingDays: s.WorkingDays,
+		})
+	}
+
+	return &dto.StaffListResponse{
+		Staff: resp,
+		Total: int(totalCount),
+		Page: page,
+		Size: size,
+	}, nil
 }

@@ -46,3 +46,18 @@ type UpdateStaffRequest struct {
 	HospitalPolyclinicID *uint  `json:"hospital_polyclinic_id"`
 	WorkingDays          string `json:"working_days"`
 }
+
+type StaffListFilter struct {
+	FirstName  string
+	LastName   string
+	TC         string
+	JobGroupID *uint
+	TitleID    *uint
+}
+
+type StaffListResponse struct {
+	Staff []StaffResponse `json:"staff"`
+	Total int             `json:"total"`
+	Page  int             `json:"page"`
+	Size  int             `json:"size"`
+}

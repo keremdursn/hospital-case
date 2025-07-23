@@ -10,7 +10,7 @@ import (
 	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
-func JobGroupRoutes(app *fiber.App, cfg *config.Config) {
+func PersonnelRoutes(app *fiber.App, cfg *config.Config) {
 	db := database.GetDB()
 	personnelRepo := repository.NewPersonnelRepository(db)
 	personnelUsecase := usecase.NewPersonnelUsecase(personnelRepo)
@@ -26,4 +26,5 @@ func JobGroupRoutes(app *fiber.App, cfg *config.Config) {
 	personnelGroup.Post("/staff", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.AddStaff)
 	personnelGroup.Put("/staff/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.UpdateStaff)
 	personnelGroup.Delete("/staff/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.DeleteStaff)
+	personnelGroup.Get("/staff", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), personnelHandler.ListStaff)
 }

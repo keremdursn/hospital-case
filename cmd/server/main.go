@@ -42,6 +42,7 @@ func main() {
 	router.AuthRoutes(app, &cfg)
 	router.SubUserRoutes(app, &cfg)
 	router.PolyclinicRoutes(app, &cfg)
+	router.PersonnelRoutes(app, &cfg)
 
 	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))
