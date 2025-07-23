@@ -9,6 +9,10 @@ import (
 	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/router"
+
+	// Swagger
+	_ "github.com/keremdursn/hospital-case/docs"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 func main() {
@@ -40,10 +44,14 @@ func main() {
 	// Create a new Fiber instance
 	app := fiber.New()
 
+	// Swagger UI endpoint
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
+
 	router.AuthRoutes(app, &cfg)
 	router.SubUserRoutes(app, &cfg)
 	router.PolyclinicRoutes(app, &cfg)
 	router.PersonnelRoutes(app, &cfg)
+	router.LocationRoutes(app)
 
 	for _, r := range app.GetRoutes() {
 		fmt.Println(r.Method, r.Path)

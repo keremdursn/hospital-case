@@ -22,6 +22,16 @@ func NewSubUserHandler(usecase usecase.SubUserUsecase, cfg *config.Config) *SubU
 	}
 }
 
+// CreateSubUser godoc
+// @Summary     Alt kullanıcı ekler
+// @Description Adds a new subuser (yetkili/çalışan)
+// @Tags        SubUser
+// @Accept      json
+// @Produce     json
+// @Param       subuser body dto.CreateSubUserRequest true "SubUser info"
+// @Success     201 {object} dto.SubUserResponse
+// @Failure     400 {object} map[string]string
+// @Router      /api/subuser [post]
 func (h *SubUserHandler) CreateSubUser(c *fiber.Ctx) error {
 	req := new(dto.CreateSubUserRequest)
 	if err := c.BodyParser(req); err != nil {
@@ -41,6 +51,14 @@ func (h *SubUserHandler) CreateSubUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
+// ListSubUsers godoc
+// @Summary     Alt kullanıcıları listeler
+// @Description Lists all subusers for the hospital
+// @Tags        SubUser
+// @Produce     json
+// @Success     200 {array} dto.SubUserResponse
+// @Failure     400 {object} map[string]string
+// @Router      /api/subuser [get]
 func (h *SubUserHandler) ListSubUsers(c *fiber.Ctx) error {
 	user := utils.GetUserInfo(c)
 	if user == nil {
@@ -54,6 +72,17 @@ func (h *SubUserHandler) ListSubUsers(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// UpdateSubUser godoc
+// @Summary     Alt kullanıcıyı günceller
+// @Description Updates a subuser
+// @Tags        SubUser
+// @Accept      json
+// @Produce     json
+// @Param       id path int true "SubUser ID"
+// @Param       subuser body dto.UpdateSubUserRequest true "SubUser info"
+// @Success     200 {object} dto.SubUserResponse
+// @Failure     400 {object} map[string]string
+// @Router      /api/subuser/{id} [put]
 func (h *SubUserHandler) UpdateSubUser(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
@@ -78,6 +107,15 @@ func (h *SubUserHandler) UpdateSubUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(resp)
 }
 
+// DeleteSubUser godoc
+// @Summary     Alt kullanıcıyı siler
+// @Description Deletes a subuser
+// @Tags        SubUser
+// @Produce     json
+// @Param       id path int true "SubUser ID"
+// @Success     200 {object} map[string]string
+// @Failure     400 {object} map[string]string
+// @Router      /api/subuser/{id} [delete]
 func (h *SubUserHandler) DeleteSubUser(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
