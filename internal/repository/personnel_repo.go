@@ -17,6 +17,11 @@ type PersonnelRepository interface {
 	GetHospitalPolyclinicByID(id uint) (*models.HospitalPolyclinic, error)
 	GetPolyclinicByID(id uint) (*models.Polyclinic, error)
 	CreateStaff(staff *models.Staff) error
+
+	GetStaffByID(id uint) (*models.Staff, error)
+	IsTCOrPhoneExistsExcludeID(id uint, tc, phone string) (bool, error)
+	UpdateStaff(staff *models.Staff) error
+	DeleteStaff(staff *models.Staff) error
 }
 
 type personnelRepository struct {
@@ -90,6 +95,30 @@ func (r *personnelRepository) GetPolyclinicByID(id uint) (*models.Polyclinic, er
 	return &p, nil
 }
 
-func (r * personnelRepository) CreateStaff(staff *models.Staff) error {
+func (r *personnelRepository) CreateStaff(staff *models.Staff) error {
 	return r.db.Create(staff).Error
+}
+
+func (r *personnelRepository) GetStaffByID(id uint) (*models.Staff, error) {
+	var staff models.Staff
+	if err := r.db.First(&staff, id).Error; err != nil {
+		return nil, err
+	}
+	return &staff, nil
+}
+
+func (r *personnelRepository) IsTCOrPhoneExistsExcludeID(id uint, tc, phone string) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.Staff{}).
+		Where("id = ? AND (tc = ? OR phone = ?)", id, tc, phone).
+		Count(&count).Error
+	return count > 0, err
+}
+
+func (r *personnelRepository) UpdateStaff(staff *models.Staff) error {
+	return r.db.Save(staff).Error
+}
+
+func (r *personnelRepository) DeleteStaff(staff *models.Staff) error {
+	return r.db.Delete(staff).Error
 }

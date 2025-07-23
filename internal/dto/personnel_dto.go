@@ -35,3 +35,14 @@ type StaffResponse struct {
 	PolyclinicName       *string `json:"polyclinic_name"`
 	WorkingDays          string  `json:"working_days"`
 }
+
+type UpdateStaffRequest struct {
+	FirstName            string `json:"first_name"`
+	LastName             string `json:"last_name"`
+	TC                   string `json:"tc"`
+	Phone                string `json:"phone"`
+	JobGroupID           uint   `json:"job_group_id"`
+	TitleID              uint   `json:"title_id"`
+	HospitalPolyclinicID *uint  `json:"hospital_polyclinic_id"`
+	WorkingDays          string `json:"working_days"`
+}

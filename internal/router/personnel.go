@@ -24,5 +24,6 @@ func JobGroupRoutes(app *fiber.App, cfg *config.Config) {
 	personnelGroup.Get("/titles", utils.AuthRequired(cfg), utils.RequireRole("yetkili", "calisan"), personnelHandler.ListTitleByJobGroup)
 
 	personnelGroup.Post("/staff", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.AddStaff)
-
+	personnelGroup.Put("/staff/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.UpdateStaff)
+	personnelGroup.Delete("/staff/:id", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), personnelHandler.DeleteStaff)
 }

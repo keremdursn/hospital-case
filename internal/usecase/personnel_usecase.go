@@ -13,6 +13,8 @@ type PersonnelUsecase interface {
 	ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLookup, error)
 
 	AddStaff(req *dto.AddStaffRequest, hospitalID uint) (*dto.StaffResponse, error)
+	UpdateStaff(id uint, req *dto.UpdateStaffRequest, hospitalID uint) (*dto.StaffResponse, error)
+	DeleteStaff(id, hospitalID uint) error
 }
 
 type personnelUsecase struct {
@@ -61,6 +63,7 @@ func (u *personnelUsecase) AddStaff(req *dto.AddStaffRequest, hospitalID uint) (
 	if err != nil {
 		return nil, err
 	}
+
 	if exists {
 		return nil, errors.New("staff with given TC or phone already exists")
 	}
@@ -75,11 +78,11 @@ func (u *personnelUsecase) AddStaff(req *dto.AddStaffRequest, hospitalID uint) (
 	if err != nil {
 		return nil, errors.New("title not found")
 	}
+
 	if title.JobGroupID != jobGroup.ID {
 		return nil, errors.New("title does not belong to the selected job group")
 	}
 
-	// Başhekim kontrolü
 	if title.Name == "Başhekim" {
 		count, err := u.repo.CountHospitalHeads(hospitalID)
 		if err != nil {
@@ -134,5 +137,99 @@ func (u *personnelUsecase) AddStaff(req *dto.AddStaffRequest, hospitalID uint) (
 		PolyclinicName:       polyName,
 		WorkingDays:          staff.WorkingDays,
 	}, nil
+}
 
+func (u *personnelUsecase) UpdateStaff(id uint, req *dto.UpdateStaffRequest, hospitalID uint) (*dto.StaffResponse, error) {
+	staff, err := u.repo.GetStaffByID(id)
+	if err != nil {
+		return nil, errors.New("staff not found")
+	}
+	if staff.HospitalID != hospitalID {
+		return nil, errors.New("forbidden: cannot update staff from another hospital")
+	}
+
+	// TC ve telefon benzersiz mi? (kendisi hariç)
+	exists, err := u.repo.IsTCOrPhoneExistsExcludeID(id, req.TC, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, errors.New("another staff with given TC or phone already exists")
+	}
+
+	// Meslek grubu ve unvan var mı, ilişkili mi?
+	jobGroup, err := u.repo.GetJobGroupByID(req.JobGroupID)
+	if err != nil {
+		return nil, errors.New("job group not found")
+	}
+
+	title, err := u.repo.GetTitleByID(req.TitleID)
+	if err != nil {
+		return nil, errors.New("title not found")
+	}
+	if title.JobGroupID != jobGroup.ID {
+		return nil, errors.New("title does not belong to the selected job group")
+	}
+
+	if title.Name == "Başhekim" {
+		count, err := u.repo.CountHospitalHeads(hospitalID)
+		if err != nil {
+			return nil, err
+		}
+		if count > 0 {
+			return nil, errors.New("there can be only one Başhekim in a hospital")
+		}
+	}
+
+	var polyName *string
+	if req.HospitalPolyclinicID != nil {
+		hp, err := u.repo.GetHospitalPolyclinicByID(*req.HospitalPolyclinicID)
+		if err != nil {
+			return nil, errors.New("hospital polyclinic not found")
+		}
+		if hp.HospitalID != hospitalID {
+			return nil, errors.New("polyclinic does not belong to your hospital")
+		}
+		p, _ := u.repo.GetPolyclinicByID(hp.PolyclinicID)
+		polyName = &p.Name
+	}
+
+	staff.FirstName = req.FirstName
+	staff.LastName = req.LastName
+	staff.TC = req.TC
+	staff.Phone = req.Phone
+	staff.JobGroupID = req.JobGroupID
+	staff.TitleID = req.TitleID
+	staff.HospitalPolyclinicID = req.HospitalPolyclinicID
+	staff.WorkingDays = req.WorkingDays
+
+	if err := u .repo.UpdateStaff(staff); err != nil {
+		return nil, err
+	}
+
+	return &dto.StaffResponse{
+		ID:                   staff.ID,
+		FirstName:            staff.FirstName,
+		LastName:             staff.LastName,
+		TC:                   staff.TC,
+		Phone:                staff.Phone,
+		JobGroupID:           jobGroup.ID,
+		JobGroupName:         jobGroup.Name,
+		TitleID:              title.ID,
+		TitleName:            title.Name,
+		HospitalPolyclinicID: staff.HospitalPolyclinicID,
+		PolyclinicName:       polyName,
+		WorkingDays:          staff.WorkingDays,
+	}, nil
+}
+
+func (u *personnelUsecase) DeleteStaff(id, hospitalID uint) error {
+	staff, err := u.repo.GetStaffByID(id)
+	if err != nil {
+		return errors.New("staff not found")
+	}
+	if staff.HospitalID != hospitalID {
+		return errors.New("forbidden: cannot delete staff from another hospital")
+	}
+	return u.repo.DeleteStaff(staff)
 }

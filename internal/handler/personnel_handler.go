@@ -28,7 +28,7 @@ func (h *PersonnelHandler) ListAllJobGroups(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 func (h *PersonnelHandler) ListTitleByJobGroup(c *fiber.Ctx) error {
@@ -43,7 +43,7 @@ func (h *PersonnelHandler) ListTitleByJobGroup(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 func (h *PersonnelHandler) AddStaff(c *fiber.Ctx) error {
@@ -62,4 +62,44 @@ func (h *PersonnelHandler) AddStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(fiber.StatusCreated).JSON(resp)
+}
+
+func (h *PersonnelHandler) UpdateStaff(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid staff id"})
+	}
+
+	req := new(dto.UpdateStaffRequest)
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	user := utils.GetUserInfo(c)
+	if user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	resp, err := h.usecase.UpdateStaff(uint(id), req, user.HospitalID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(resp)
+}
+
+func (h *PersonnelHandler) DeleteStaff(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid staff id"})
+	}
+
+	user := utils.GetUserInfo(c)
+	if user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	if err := h.usecase.DeleteStaff(uint(id), user.HospitalID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff deleted"})
 }
