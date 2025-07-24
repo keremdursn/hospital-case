@@ -50,6 +50,7 @@ func main() {
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	router.AuthRoutes(app, &cfg)
+	router.HospitalRoutes(app, &cfg)
 	router.SubUserRoutes(app, &cfg)
 	router.PolyclinicRoutes(app, &cfg)
 	router.PersonnelRoutes(app, &cfg)

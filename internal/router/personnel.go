@@ -16,16 +16,7 @@ func PersonnelRoutes(app *fiber.App, cfg *config.Config) {
 	personnelUsecase := usecase.NewPersonnelUsecase(personnelRepo)
 	personnelHandler := handler.NewPersonnelHandler(personnelUsecase, cfg)
 
-	// Location modülü bağımlılıkları
-	locationRepo := repository.NewLocationRepository()
-	locationUsecase := usecase.NewLocationUsecase(locationRepo)
-	locationHandler := handler.NewLocationHandler(locationUsecase)
-
 	api := app.Group("/api")
-
-	// Location endpointleri
-	api.Get("/cities", locationHandler.ListCities)
-	api.Get("/districts", locationHandler.ListDistrictsByCity)
 
 	personnelGroup := api.Group("/personnel")
 
