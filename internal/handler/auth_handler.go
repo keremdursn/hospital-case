@@ -7,6 +7,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/usecase"
+	"github.com/keremdursn/hospital-case/pkg/metrics"
 )
 
 type AuthHandler struct {
@@ -90,6 +91,8 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	resp, err := h.authUsecase.Login(&req, h.config)
 	if err != nil {
+		// Başarısız login denemesi için Prometheus metriğini artır
+		metrics.LoginFailCounter.Inc()
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": err.Error(),
 		})

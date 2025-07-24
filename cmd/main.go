@@ -13,6 +13,9 @@ import (
 	// Swagger
 	_ "github.com/keremdursn/hospital-case/docs"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
+
+	// Prometheus Metrics
+	"github.com/keremdursn/hospital-case/pkg/metrics"
 )
 
 func main() {
@@ -43,6 +46,10 @@ func main() {
 
 	// Create a new Fiber instance
 	app := fiber.New()
+
+	// Prometheus metrics middleware ve endpoint
+	app.Use(metrics.PrometheusMiddleware())
+	app.Get("/metrics", metrics.PrometheusHandler())
 
 	// Swagger UI endpoint
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
