@@ -48,7 +48,6 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Map models.Authority to dto.AuthorityResponse
 	var deletedAt *time.Time
 	if authority.DeletedAt.Valid {
 		deletedAt = &authority.DeletedAt.Time
@@ -113,7 +112,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Router      /api/auth/forgot-password [post]
 func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	var req dto.ForgotPasswordRequest
-	if err := c.BodyParser(req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
@@ -137,7 +136,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 // @Router      /api/auth/reset-password [post]
 func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	var req dto.ResetPasswordRequest
-	if err := c.BodyParser(req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 

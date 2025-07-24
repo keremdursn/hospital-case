@@ -35,7 +35,7 @@ func (h *PersonnelHandler) ListAllJobGroups(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(resp)
+	return c.JSON(resp)
 }
 
 // ListTitleByJobGroup godoc
@@ -59,7 +59,7 @@ func (h *PersonnelHandler) ListTitleByJobGroup(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(resp)
+	return c.JSON(resp)
 }
 
 // AddStaff godoc
@@ -121,7 +121,7 @@ func (h *PersonnelHandler) UpdateStaff(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusCreated).JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
 
 // DeleteStaff godoc
@@ -206,5 +206,5 @@ func (h *PersonnelHandler) ListStaff(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusCreated).JSON(resp)
+	return c.JSON(resp)
 }

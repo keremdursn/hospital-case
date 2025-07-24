@@ -69,4 +69,3 @@ func (r *authRepository) GetAuthorityByPhone(phone string) (*models.Authority, e
 func (r *authRepository) UpdateAuthorityPassword(authority *models.Authority, hashedPassword string) error {
 	return r.db.Model(authority).Update("password", hashedPassword).Error
 }
-

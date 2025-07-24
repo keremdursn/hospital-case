@@ -10,16 +10,14 @@ import (
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/router"
 
-	// Swagger
 	_ "github.com/keremdursn/hospital-case/docs"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 
-	// Prometheus Metrics
 	"github.com/keremdursn/hospital-case/pkg/metrics"
 )
 
 func main() {
-	// Load configuration
+
 	cfg, err := config.LoadConfig("./configs")
 	if err != nil {
 		log.Fatalf("cannot load config: %v", err)
@@ -44,14 +42,11 @@ func main() {
 		log.Fatal("cannot migrate database: ", err)
 	}
 
-	// Create a new Fiber instance
 	app := fiber.New()
 
-	// Prometheus metrics middleware ve endpoint
 	app.Use(metrics.PrometheusMiddleware())
 	app.Get("/metrics", metrics.PrometheusHandler())
 
-	// Swagger UI endpoint
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	router.AuthRoutes(app, &cfg)
@@ -64,6 +59,5 @@ func main() {
 		fmt.Println(r.Method, r.Path)
 	}
 
-	// Start the server
 	log.Fatal(app.Listen(":" + cfg.Server.Port))
 }

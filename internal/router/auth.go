@@ -7,7 +7,6 @@ import (
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
-	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
 func AuthRoutes(app *fiber.App, cfg *config.Config) {
@@ -25,19 +24,6 @@ func AuthRoutes(app *fiber.App, cfg *config.Config) {
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
 	authGroup.Post("/reset-password", authHandler.ResetPassword)
 
-	api.Get("/protected", utils.AuthRequired(cfg), func(c *fiber.Ctx) error {
-		user := utils.GetUserInfo(c)
-		if user == nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
-		}
-		return c.JSON(fiber.Map{
-			"authority_id": user.AuthorityID,
-			"hospital_id":  user.HospitalID,
-			"role":         user.Role,
-		})
-	})
-
 	// Sub-user management (only for 'yetkili')
 	// api.Post("/users", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), authHandler.CreateSubUser)
-
 }
