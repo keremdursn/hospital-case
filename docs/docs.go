@@ -260,80 +260,24 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/cities": {
-            "get": {
-                "description": "Returns all cities (il)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Location"
-                ],
-                "summary": "Tüm şehirleri listeler",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.CityLookup"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/districts": {
-            "get": {
-                "description": "Returns all districts (ilçe) for a given city",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Location"
-                ],
-                "summary": "Seçili ile ait ilçeleri listeler",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "City ID",
-                        "name": "city_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.DistrictLookup"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/hospital/me": {
             "get": {
-                "description": "Returns the hospital info of the authenticated user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mevcut hastane bilgilerini döner",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Hospital"
                 ],
-                "summary": "Giriş yapan kullanıcının hastane bilgisini getirir",
+                "summary": "Hastane bilgilerini getirir",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -362,7 +306,12 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the hospital info of the authenticated user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mevcut hastane bilgilerini günceller",
                 "consumes": [
                     "application/json"
                 ],
@@ -372,11 +321,11 @@ const docTemplate = `{
                 "tags": [
                     "Hospital"
                 ],
-                "summary": "Giriş yapan kullanıcının hastane bilgisini günceller",
+                "summary": "Hastane bilgilerini günceller",
                 "parameters": [
                     {
-                        "description": "Hospital update info",
-                        "name": "hospital",
+                        "description": "Update hospital info",
+                        "name": "update",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -412,16 +361,89 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/location/cities": {
+            "get": {
+                "description": "Tüm şehirleri döner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Location"
+                ],
+                "summary": "Tüm şehirleri listeler",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.CityLookup"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/location/districts": {
+            "get": {
+                "description": "Belirli bir şehre ait ilçeleri döner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Location"
+                ],
+                "summary": "Şehre göre ilçeleri listeler",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "City ID",
+                        "name": "city_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.DistrictLookup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/personnel/job-groups": {
             "get": {
-                "description": "Returns all job groups",
+                "description": "Tüm iş gruplarını döner",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Personnel"
                 ],
-                "summary": "Tüm meslek gruplarını listeler",
+                "summary": "Tüm iş gruplarını listeler",
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -438,6 +460,9 @@ const docTemplate = `{
         "/api/personnel/staff": {
             "get": {
                 "description": "Lists staff with filters and pagination",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -508,7 +533,12 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Adds a new staff member",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Yeni personel kaydı oluşturur",
                 "consumes": [
                     "application/json"
                 ],
@@ -518,10 +548,10 @@ const docTemplate = `{
                 "tags": [
                     "Personnel"
                 ],
-                "summary": "Personel ekler",
+                "summary": "Yeni personel oluşturur",
                 "parameters": [
                     {
-                        "description": "Staff info",
+                        "description": "Create staff info",
                         "name": "staff",
                         "in": "body",
                         "required": true,
@@ -551,7 +581,12 @@ const docTemplate = `{
         },
         "/api/personnel/staff/{id}": {
             "put": {
-                "description": "Updates a staff member",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mevcut personel bilgilerini günceller",
                 "consumes": [
                     "application/json"
                 ],
@@ -561,7 +596,7 @@ const docTemplate = `{
                 "tags": [
                     "Personnel"
                 ],
-                "summary": "Personel günceller",
+                "summary": "Personel bilgilerini günceller",
                 "parameters": [
                     {
                         "type": "integer",
@@ -599,7 +634,15 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes a staff member",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Belirtilen personeli siler",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -640,14 +683,17 @@ const docTemplate = `{
         },
         "/api/personnel/titles": {
             "get": {
-                "description": "Returns all titles for a given job group",
+                "description": "Belirli bir iş grubuna ait unvanları döner",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Personnel"
                 ],
-                "summary": "Seçili meslek grubuna ait unvanları listeler",
+                "summary": "İş grubuna göre unvanları listeler",
                 "parameters": [
                     {
                         "type": "integer",
@@ -679,9 +725,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/polyclinic/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tüm poliklinikleri döner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Polyclinic"
+                ],
+                "summary": "Tüm poliklinikleri listeler",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.PolyclinicLookup"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/polyclinic/add": {
             "post": {
-                "description": "Adds a polyclinic to the hospital",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hastaneye yeni poliklinik ekler",
                 "consumes": [
                     "application/json"
                 ],
@@ -694,8 +776,8 @@ const docTemplate = `{
                 "summary": "Hastaneye poliklinik ekler",
                 "parameters": [
                     {
-                        "description": "Polyclinic info",
-                        "name": "polyclinic",
+                        "description": "Add hospital polyclinic info",
+                        "name": "hospital_polyclinic",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -722,23 +804,49 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/polyclinic/all": {
-            "get": {
-                "description": "Returns all polyclinics",
+        "/api/polyclinic/hospital-polyclinics/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Belirtilen hastane polikliniğini siler",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Polyclinic"
                 ],
-                "summary": "Tüm poliklinikleri listeler",
+                "summary": "Hastane polikliniğini siler",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Hospital Polyclinic ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.PolyclinicLookup"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -747,7 +855,15 @@ const docTemplate = `{
         },
         "/api/polyclinic/list": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Lists hospital's polyclinics with pagination",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -788,50 +904,17 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/polyclinic/remove/{id}": {
-            "delete": {
-                "description": "Removes a polyclinic from the hospital",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Polyclinic"
-                ],
-                "summary": "Hastaneden poliklinik siler",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Hospital Polyclinic ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/subuser": {
             "get": {
-                "description": "Lists all subusers for the hospital",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hastaneye ait tüm kullanıcıları listeler",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -861,7 +944,12 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Adds a new subuser (yetkili/çalışan)",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Yeni alt kullanıcı kaydı oluşturur (yetkili/çalışan)",
                 "consumes": [
                     "application/json"
                 ],
@@ -871,10 +959,10 @@ const docTemplate = `{
                 "tags": [
                     "SubUser"
                 ],
-                "summary": "Alt kullanıcı ekler",
+                "summary": "Alt kullanıcı oluşturur",
                 "parameters": [
                     {
-                        "description": "SubUser info",
+                        "description": "Create subuser info",
                         "name": "subuser",
                         "in": "body",
                         "required": true,
@@ -904,7 +992,12 @@ const docTemplate = `{
         },
         "/api/subuser/{id}": {
             "put": {
-                "description": "Updates a subuser",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mevcut alt kullanıcı bilgilerini günceller",
                 "consumes": [
                     "application/json"
                 ],
@@ -914,7 +1007,7 @@ const docTemplate = `{
                 "tags": [
                     "SubUser"
                 ],
-                "summary": "Alt kullanıcıyı günceller",
+                "summary": "Alt kullanıcı bilgilerini günceller",
                 "parameters": [
                     {
                         "type": "integer",
@@ -924,7 +1017,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "SubUser info",
+                        "description": "Update subuser info",
                         "name": "subuser",
                         "in": "body",
                         "required": true,
@@ -952,14 +1045,22 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes a subuser",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Belirtilen alt kullanıcıyı siler",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SubUser"
                 ],
-                "summary": "Alt kullanıcıyı siler",
+                "summary": "Alt kullanıcı siler",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1306,18 +1407,39 @@ const docTemplate = `{
         },
         "dto.RegisterRequest": {
             "type": "object",
+            "required": [
+                "address",
+                "authority_email",
+                "authority_fname",
+                "authority_lname",
+                "authority_phone",
+                "authority_tc",
+                "city_id",
+                "district_id",
+                "hospital_email",
+                "hospital_name",
+                "hospital_phone",
+                "password",
+                "tax_number"
+            ],
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 10
                 },
                 "authority_email": {
                     "type": "string"
                 },
                 "authority_fname": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
                 },
                 "authority_lname": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
                 },
                 "authority_phone": {
                     "type": "string"
@@ -1335,7 +1457,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hospital_name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
                 },
                 "hospital_phone": {
                     "type": "string"

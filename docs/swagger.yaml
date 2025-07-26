@@ -203,12 +203,18 @@ definitions:
   dto.RegisterRequest:
     properties:
       address:
+        maxLength: 200
+        minLength: 10
         type: string
       authority_email:
         type: string
       authority_fname:
+        maxLength: 50
+        minLength: 2
         type: string
       authority_lname:
+        maxLength: 50
+        minLength: 2
         type: string
       authority_phone:
         type: string
@@ -221,6 +227,8 @@ definitions:
       hospital_email:
         type: string
       hospital_name:
+        maxLength: 100
+        minLength: 2
         type: string
       hospital_phone:
         type: string
@@ -228,6 +236,20 @@ definitions:
         type: string
       tax_number:
         type: string
+    required:
+    - address
+    - authority_email
+    - authority_fname
+    - authority_lname
+    - authority_phone
+    - authority_tc
+    - city_id
+    - district_id
+    - hospital_email
+    - hospital_name
+    - hospital_phone
+    - password
+    - tax_number
     type: object
   dto.ResetPasswordRequest:
     properties:
@@ -521,51 +543,11 @@ paths:
       summary: Şifreyi sıfırlar
       tags:
       - Authentication
-  /api/cities:
-    get:
-      description: Returns all cities (il)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.CityLookup'
-            type: array
-      summary: Tüm şehirleri listeler
-      tags:
-      - Location
-  /api/districts:
-    get:
-      description: Returns all districts (ilçe) for a given city
-      parameters:
-      - description: City ID
-        in: query
-        name: city_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.DistrictLookup'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Seçili ile ait ilçeleri listeler
-      tags:
-      - Location
   /api/hospital/me:
     get:
-      description: Returns the hospital info of the authenticated user
+      consumes:
+      - application/json
+      description: Mevcut hastane bilgilerini döner
       produces:
       - application/json
       responses:
@@ -585,17 +567,19 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Giriş yapan kullanıcının hastane bilgisini getirir
+      security:
+      - BearerAuth: []
+      summary: Hastane bilgilerini getirir
       tags:
       - Hospital
     put:
       consumes:
       - application/json
-      description: Updates the hospital info of the authenticated user
+      description: Mevcut hastane bilgilerini günceller
       parameters:
-      - description: Hospital update info
+      - description: Update hospital info
         in: body
-        name: hospital
+        name: update
         required: true
         schema:
           $ref: '#/definitions/dto.UpdateHospitalRequest'
@@ -618,12 +602,62 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Giriş yapan kullanıcının hastane bilgisini günceller
+      security:
+      - BearerAuth: []
+      summary: Hastane bilgilerini günceller
       tags:
       - Hospital
+  /api/location/cities:
+    get:
+      consumes:
+      - application/json
+      description: Tüm şehirleri döner
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.CityLookup'
+            type: array
+      summary: Tüm şehirleri listeler
+      tags:
+      - Location
+  /api/location/districts:
+    get:
+      consumes:
+      - application/json
+      description: Belirli bir şehre ait ilçeleri döner
+      parameters:
+      - description: City ID
+        in: query
+        name: city_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DistrictLookup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Şehre göre ilçeleri listeler
+      tags:
+      - Location
   /api/personnel/job-groups:
     get:
-      description: Returns all job groups
+      consumes:
+      - application/json
+      description: Tüm iş gruplarını döner
       produces:
       - application/json
       responses:
@@ -633,11 +667,13 @@ paths:
             items:
               $ref: '#/definitions/dto.JobGroupLookup'
             type: array
-      summary: Tüm meslek gruplarını listeler
+      summary: Tüm iş gruplarını listeler
       tags:
       - Personnel
   /api/personnel/staff:
     get:
+      consumes:
+      - application/json
       description: Lists staff with filters and pagination
       parameters:
       - description: Page number
@@ -687,9 +723,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds a new staff member
+      description: Yeni personel kaydı oluşturur
       parameters:
-      - description: Staff info
+      - description: Create staff info
         in: body
         name: staff
         required: true
@@ -708,12 +744,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Personel ekler
+      security:
+      - BearerAuth: []
+      summary: Yeni personel oluşturur
       tags:
       - Personnel
   /api/personnel/staff/{id}:
     delete:
-      description: Deletes a staff member
+      consumes:
+      - application/json
+      description: Belirtilen personeli siler
       parameters:
       - description: Staff ID
         in: path
@@ -735,13 +775,15 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Personel siler
       tags:
       - Personnel
     put:
       consumes:
       - application/json
-      description: Updates a staff member
+      description: Mevcut personel bilgilerini günceller
       parameters:
       - description: Staff ID
         in: path
@@ -767,12 +809,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Personel günceller
+      security:
+      - BearerAuth: []
+      summary: Personel bilgilerini günceller
       tags:
       - Personnel
   /api/personnel/titles:
     get:
-      description: Returns all titles for a given job group
+      consumes:
+      - application/json
+      description: Belirli bir iş grubuna ait unvanları döner
       parameters:
       - description: Job Group ID
         in: query
@@ -794,18 +840,37 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Seçili meslek grubuna ait unvanları listeler
+      summary: İş grubuna göre unvanları listeler
       tags:
       - Personnel
+  /api/polyclinic/:
+    get:
+      consumes:
+      - application/json
+      description: Tüm poliklinikleri döner
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PolyclinicLookup'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Tüm poliklinikleri listeler
+      tags:
+      - Polyclinic
   /api/polyclinic/add:
     post:
       consumes:
       - application/json
-      description: Adds a polyclinic to the hospital
+      description: Hastaneye yeni poliklinik ekler
       parameters:
-      - description: Polyclinic info
+      - description: Add hospital polyclinic info
         in: body
-        name: polyclinic
+        name: hospital_polyclinic
         required: true
         schema:
           $ref: '#/definitions/dto.AddHospitalPolyclinicRequest'
@@ -822,26 +887,46 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Hastaneye poliklinik ekler
       tags:
       - Polyclinic
-  /api/polyclinic/all:
-    get:
-      description: Returns all polyclinics
+  /api/polyclinic/hospital-polyclinics/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Belirtilen hastane polikliniğini siler
+      parameters:
+      - description: Hospital Polyclinic ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.PolyclinicLookup'
-            type: array
-      summary: Tüm poliklinikleri listeler
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hastane polikliniğini siler
       tags:
       - Polyclinic
   /api/polyclinic/list:
     get:
+      consumes:
+      - application/json
       description: Lists hospital's polyclinics with pagination
       parameters:
       - description: Page number
@@ -865,39 +950,16 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Hastanenin polikliniklerini listeler (sayfalı)
-      tags:
-      - Polyclinic
-  /api/polyclinic/remove/{id}:
-    delete:
-      description: Removes a polyclinic from the hospital
-      parameters:
-      - description: Hospital Polyclinic ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Hastaneden poliklinik siler
       tags:
       - Polyclinic
   /api/subuser:
     get:
-      description: Lists all subusers for the hospital
+      consumes:
+      - application/json
+      description: Hastaneye ait tüm kullanıcıları listeler
       produces:
       - application/json
       responses:
@@ -913,15 +975,17 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Alt kullanıcıları listeler
       tags:
       - SubUser
     post:
       consumes:
       - application/json
-      description: Adds a new subuser (yetkili/çalışan)
+      description: Yeni alt kullanıcı kaydı oluşturur (yetkili/çalışan)
       parameters:
-      - description: SubUser info
+      - description: Create subuser info
         in: body
         name: subuser
         required: true
@@ -940,12 +1004,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Alt kullanıcı ekler
+      security:
+      - BearerAuth: []
+      summary: Alt kullanıcı oluşturur
       tags:
       - SubUser
   /api/subuser/{id}:
     delete:
-      description: Deletes a subuser
+      consumes:
+      - application/json
+      description: Belirtilen alt kullanıcıyı siler
       parameters:
       - description: SubUser ID
         in: path
@@ -967,20 +1035,22 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Alt kullanıcıyı siler
+      security:
+      - BearerAuth: []
+      summary: Alt kullanıcı siler
       tags:
       - SubUser
     put:
       consumes:
       - application/json
-      description: Updates a subuser
+      description: Mevcut alt kullanıcı bilgilerini günceller
       parameters:
       - description: SubUser ID
         in: path
         name: id
         required: true
         type: integer
-      - description: SubUser info
+      - description: Update subuser info
         in: body
         name: subuser
         required: true
@@ -999,7 +1069,9 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Alt kullanıcıyı günceller
+      security:
+      - BearerAuth: []
+      summary: Alt kullanıcı bilgilerini günceller
       tags:
       - SubUser
 swagger: "2.0"
