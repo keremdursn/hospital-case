@@ -90,12 +90,16 @@ func (u *authUsecase) Login(req *dto.LoginRequest, cfg *config.Config) (*dto.Log
 	}
 
 	// Token üret
-	token, err := utils.GenerateToken(authority.ID, authority.HospitalID, authority.Role, cfg)
+	tokenPair, err := utils.GenerateTokenPair(authority.ID, authority.HospitalID, authority.Role, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.LoginResponse{Token: token}, nil
+	return &dto.LoginResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+	}, nil
 }
 
 func (u *authUsecase) ForgotPassword(req *dto.ForgotPasswordRequest) (*dto.ForgotPasswordResponse, error) {

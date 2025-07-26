@@ -31,7 +31,10 @@ type RedisConfig struct {
 }
 
 type JWTConfig struct {
-	Secret string `mapstructure:"secret"`
+	PrivateKey         string `mapstructure:"private_key"`
+	PublicKey          string `mapstructure:"public_key"`
+	AccessTokenExpiry  string `mapstructure:"access_token_expiry"`
+	RefreshTokenExpiry string `mapstructure:"refresh_token_expiry"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

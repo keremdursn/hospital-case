@@ -8,6 +8,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/usecase"
 	"github.com/keremdursn/hospital-case/pkg/metrics"
+	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
 type AuthHandler struct {
@@ -36,6 +37,7 @@ func NewAuthHandler(authUsecase usecase.AuthUsecase, cfg *config.Config) *AuthHa
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
+		metrics.RegisterFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse request",
 		})
@@ -43,10 +45,12 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 
 	authority, err := h.authUsecase.Register(&req)
 	if err != nil {
+		metrics.RegisterFailCounter.Inc()
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
+	metrics.RegisterSuccessCounter.Inc()
 
 	var deletedAt *time.Time
 	if authority.DeletedAt.Valid {
@@ -113,13 +117,16 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	var req dto.ForgotPasswordRequest
 	if err := c.BodyParser(&req); err != nil {
+		metrics.ForgotPasswordFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
 	resp, err := h.authUsecase.ForgotPassword(&req)
 	if err != nil {
+		metrics.ForgotPasswordFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	metrics.ForgotPasswordSuccessCounter.Inc()
 
 	return c.Status(fiber.StatusOK).JSON(resp)
 }
@@ -137,12 +144,65 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	var req dto.ResetPasswordRequest
 	if err := c.BodyParser(&req); err != nil {
+		metrics.ResetPasswordFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
 	if err := h.authUsecase.ResetPassword(&req); err != nil {
+		metrics.ResetPasswordFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	metrics.ResetPasswordSuccessCounter.Inc()
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Password reset successful"})
+}
+
+// RefreshToken godoc
+// @Summary     JWT yenileme
+// @Description Geçerli bir refresh token ile yeni access ve refresh token döner
+// @Tags        Authentication
+// @Accept      json
+// @Produce     json
+// @Param       refreshToken body struct{RefreshToken string `json:"refresh_token"`} true "Refresh token bilgisi"
+// @Success     200 {object} struct{AccessToken string `json:"access_token"`; RefreshToken string `json:"refresh_token"`; ExpiresIn int64 `json:"expires_in"`}
+// @Failure     400 {object} map[string]string
+// @Failure     401 {object} map[string]string
+// @Router      /api/auth/refresh-token [post]
+func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		metrics.RefreshTokenFailCounter.Inc()
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
+	}
+
+	if req.RefreshToken == "" {
+		metrics.RefreshTokenFailCounter.Inc()
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Refresh token is required",
+		})
+	}
+
+	tokenPair, err := utils.RefreshAccessToken(req.RefreshToken, h.config)
+	if err != nil {
+		metrics.RefreshTokenFailCounter.Inc()
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid refresh token",
+		})
+	}
+	metrics.RefreshTokenSuccessCounter.Inc()
+
+	return c.JSON(fiber.Map{
+		"access_token":  tokenPair.AccessToken,
+		"refresh_token": tokenPair.RefreshToken,
+		"expires_in":    tokenPair.ExpiresIn,
+	})
+}
+
+func (h *AuthHandler) Config() *config.Config {
+	return h.config
 }
