@@ -31,6 +31,12 @@ var (
 			Help: "Total number of failed login attempts",
 		},
 	)
+	LoginSuccessCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "login_success_total",
+			Help: "Total number of successful login attempts",
+		},
+	)
 
 	// Register endpointi için sayaçlar
 	RegisterSuccessCounter = prometheus.NewCounter(
@@ -87,12 +93,22 @@ var (
 			Help: "Total number of failed refresh token attempts",
 		},
 	)
+
+	// Rate limiting metrikleri
+	RateLimitExceededCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "rate_limit_exceeded_total",
+			Help: "Total number of rate limit exceeded requests",
+		},
+		[]string{"endpoint", "ip"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(HttpRequestsTotal)
 	prometheus.MustRegister(HttpRequestDuration)
 	prometheus.MustRegister(LoginFailCounter)
+	prometheus.MustRegister(LoginSuccessCounter)
 	prometheus.MustRegister(RegisterSuccessCounter)
 	prometheus.MustRegister(RegisterFailCounter)
 	prometheus.MustRegister(ForgotPasswordSuccessCounter)
@@ -101,6 +117,7 @@ func init() {
 	prometheus.MustRegister(ResetPasswordFailCounter)
 	prometheus.MustRegister(RefreshTokenSuccessCounter)
 	prometheus.MustRegister(RefreshTokenFailCounter)
+	prometheus.MustRegister(RateLimitExceededCounter)
 }
 
 // PrometheusHandler Fiber ile uyumlu /metrics endpointi için handler döndürür

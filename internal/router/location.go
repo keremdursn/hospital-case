@@ -5,6 +5,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
+	"github.com/keremdursn/hospital-case/pkg/middleware"
 )
 
 func LocationRoutes(app *fiber.App) {
@@ -17,6 +18,6 @@ func LocationRoutes(app *fiber.App) {
 
 	locationGroup := api.Group("/location")
 
-	locationGroup.Get("/cities", locationHandler.ListCities)
-	locationGroup.Get("/districts", locationHandler.ListDistrictsByCity)
+	locationGroup.Get("/cities", middleware.GeneralRateLimiter(), locationHandler.ListCities)
+	locationGroup.Get("/districts", middleware.GeneralRateLimiter(), locationHandler.ListDistrictsByCity)
 }

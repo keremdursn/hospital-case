@@ -143,6 +143,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	metrics.LoginSuccessCounter.Inc()
 
 	return c.Status(fiber.StatusOK).JSON(resp)
 }

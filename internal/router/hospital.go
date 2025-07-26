@@ -7,6 +7,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
+	"github.com/keremdursn/hospital-case/pkg/middleware"
 	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
@@ -20,6 +21,6 @@ func HospitalRoutes(app *fiber.App, cfg *config.Config) {
 
 	hGroup := api.Group("/hospital")
 
-	hGroup.Get("/me", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.GetHospitalMe)
-	hGroup.Put("/me", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.UpdateHospitalMe)
+	hGroup.Get("/me", middleware.GeneralRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.GetHospitalMe)
+	hGroup.Put("/me", middleware.AdminRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.UpdateHospitalMe)
 }

@@ -11,37 +11,39 @@ import (
 )
 
 type PersonnelHandler struct {
-	usecase usecase.PersonnelUsecase
-	config  *config.Config
+	personnelUsecase usecase.PersonnelUsecase
+	config           *config.Config
 }
 
-func NewPersonnelHandler(usecase usecase.PersonnelUsecase, cfg *config.Config) *PersonnelHandler {
+func NewPersonnelHandler(personnelUsecase usecase.PersonnelUsecase, cfg *config.Config) *PersonnelHandler {
 	return &PersonnelHandler{
-		usecase: usecase,
-		config:  cfg,
+		personnelUsecase: personnelUsecase,
+		config:           cfg,
 	}
 }
 
 // ListAllJobGroups godoc
-// @Summary     Tüm meslek gruplarını listeler
-// @Description Returns all job groups
+// @Summary     Tüm iş gruplarını listeler
+// @Description Tüm iş gruplarını döner
 // @Tags        Personnel
+// @Accept      json
 // @Produce     json
 // @Success     201 {array} dto.JobGroupLookup
 // @Router      /api/personnel/job-groups [get]
 func (h *PersonnelHandler) ListAllJobGroups(c *fiber.Ctx) error {
-	resp, err := h.usecase.ListAllJobGroups()
+	jobGroups, err := h.personnelUsecase.ListAllJobGroups()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(jobGroups)
 }
 
 // ListTitleByJobGroup godoc
-// @Summary     Seçili meslek grubuna ait unvanları listeler
-// @Description Returns all titles for a given job group
+// @Summary     İş grubuna göre unvanları listeler
+// @Description Belirli bir iş grubuna ait unvanları döner
 // @Tags        Personnel
+// @Accept      json
 // @Produce     json
 // @Param       job_group_id query int true "Job Group ID"
 // @Success     201 {array} dto.TitleLookup
@@ -54,21 +56,22 @@ func (h *PersonnelHandler) ListTitleByJobGroup(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid job_group_id"})
 	}
 
-	resp, err := h.usecase.ListTitleByJobGroup(uint(jobGroupID))
+	titles, err := h.personnelUsecase.ListTitleByJobGroup(uint(jobGroupID))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(titles)
 }
 
 // AddStaff godoc
-// @Summary     Personel ekler
-// @Description Adds a new staff member
+// @Summary     Yeni personel oluşturur
+// @Description Yeni personel kaydı oluşturur
 // @Tags        Personnel
 // @Accept      json
 // @Produce     json
-// @Param       staff body dto.AddStaffRequest true "Staff info"
+// @Security    BearerAuth
+// @Param       staff body dto.AddStaffRequest true "Create staff info"
 // @Success     201 {object} dto.StaffResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/personnel/staff [post]
@@ -83,7 +86,7 @@ func (h *PersonnelHandler) AddStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.AddStaff(&req, user.HospitalID)
+	resp, err := h.personnelUsecase.AddStaff(&req, user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -91,11 +94,12 @@ func (h *PersonnelHandler) AddStaff(c *fiber.Ctx) error {
 }
 
 // UpdateStaff godoc
-// @Summary     Personel günceller
-// @Description Updates a staff member
+// @Summary     Personel bilgilerini günceller
+// @Description Mevcut personel bilgilerini günceller
 // @Tags        Personnel
 // @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path int true "Staff ID"
 // @Param       staff body dto.UpdateStaffRequest true "Staff info"
 // @Success     201 {object} dto.StaffResponse
@@ -117,7 +121,7 @@ func (h *PersonnelHandler) UpdateStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.UpdateStaff(uint(id), req, user.HospitalID)
+	resp, err := h.personnelUsecase.UpdateStaff(uint(id), req, user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -126,9 +130,11 @@ func (h *PersonnelHandler) UpdateStaff(c *fiber.Ctx) error {
 
 // DeleteStaff godoc
 // @Summary     Personel siler
-// @Description Deletes a staff member
+// @Description Belirtilen personeli siler
 // @Tags        Personnel
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path int true "Staff ID"
 // @Success     200 {object} map[string]string
 // @Failure     400 {object} map[string]string
@@ -144,16 +150,17 @@ func (h *PersonnelHandler) DeleteStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	if err := h.usecase.DeleteStaff(uint(id), user.HospitalID); err != nil {
+	if err := h.personnelUsecase.DeleteStaff(uint(id), user.HospitalID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff deleted"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff deleted successfully"})
 }
 
 // ListStaff godoc
 // @Summary     Personelleri listeler (filtreli ve sayfalı)
 // @Description Lists staff with filters and pagination
 // @Tags        Personnel
+// @Accept      json
 // @Produce     json
 // @Param       page query int false "Page number"
 // @Param       size query int false "Page size"
@@ -195,7 +202,7 @@ func (h *PersonnelHandler) ListStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.ListStaff(user.HospitalID, dto.StaffListFilter{
+	resp, err := h.personnelUsecase.ListStaff(user.HospitalID, dto.StaffListFilter{
 		FirstName:  firstName,
 		LastName:   lastName,
 		TC:         tc,
@@ -206,5 +213,5 @@ func (h *PersonnelHandler) ListStaff(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(resp)
 }

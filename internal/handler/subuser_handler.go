@@ -11,24 +11,25 @@ import (
 )
 
 type SubUserHandler struct {
-	usecase usecase.SubUserUsecase
-	config  *config.Config
+	subUserUsecase usecase.SubUserUsecase
+	config         *config.Config
 }
 
-func NewSubUserHandler(usecase usecase.SubUserUsecase, cfg *config.Config) *SubUserHandler {
+func NewSubUserHandler(subUserUsecase usecase.SubUserUsecase, cfg *config.Config) *SubUserHandler {
 	return &SubUserHandler{
-		usecase: usecase,
-		config:  cfg,
+		subUserUsecase: subUserUsecase,
+		config:         cfg,
 	}
 }
 
 // CreateSubUser godoc
-// @Summary     Alt kullanıcı ekler
-// @Description Adds a new subuser (yetkili/çalışan)
+// @Summary     Alt kullanıcı oluşturur
+// @Description Yeni alt kullanıcı kaydı oluşturur (yetkili/çalışan)
 // @Tags        SubUser
 // @Accept      json
 // @Produce     json
-// @Param       subuser body dto.CreateSubUserRequest true "SubUser info"
+// @Security    BearerAuth
+// @Param       subuser body dto.CreateSubUserRequest true "Create subuser info"
 // @Success     201 {object} dto.SubUserResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/subuser [post]
@@ -43,7 +44,7 @@ func (h *SubUserHandler) CreateSubUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.CreateSubUser(req, user.HospitalID)
+	resp, err := h.subUserUsecase.CreateSubUser(req, user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -51,11 +52,13 @@ func (h *SubUserHandler) CreateSubUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
-// ListSubUsers godoc
+// ListUsers godoc
 // @Summary     Alt kullanıcıları listeler
-// @Description Lists all subusers for the hospital
+// @Description Hastaneye ait tüm kullanıcıları listeler
 // @Tags        SubUser
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Success     200 {array} dto.SubUserResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/subuser [get]
@@ -65,21 +68,23 @@ func (h *SubUserHandler) ListUsers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.ListUsers(user.HospitalID)
+	resp, err := h.subUserUsecase.ListUsers(user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(resp)
+
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
 
 // UpdateSubUser godoc
-// @Summary     Alt kullanıcıyı günceller
-// @Description Updates a subuser
+// @Summary     Alt kullanıcı bilgilerini günceller
+// @Description Mevcut alt kullanıcı bilgilerini günceller
 // @Tags        SubUser
 // @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path int true "SubUser ID"
-// @Param       subuser body dto.UpdateSubUserRequest true "SubUser info"
+// @Param       subuser body dto.UpdateSubUserRequest true "Update subuser info"
 // @Success     200 {object} dto.SubUserResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/subuser/{id} [put]
@@ -99,7 +104,7 @@ func (h *SubUserHandler) UpdateSubUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.UpdateSubUser(uint(id), req, user.HospitalID)
+	resp, err := h.subUserUsecase.UpdateSubUser(uint(id), req, user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -108,10 +113,12 @@ func (h *SubUserHandler) UpdateSubUser(c *fiber.Ctx) error {
 }
 
 // DeleteSubUser godoc
-// @Summary     Alt kullanıcıyı siler
-// @Description Deletes a subuser
+// @Summary     Alt kullanıcı siler
+// @Description Belirtilen alt kullanıcıyı siler
 // @Tags        SubUser
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path int true "SubUser ID"
 // @Success     200 {object} map[string]string
 // @Failure     400 {object} map[string]string
@@ -127,9 +134,9 @@ func (h *SubUserHandler) DeleteSubUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	if err := h.usecase.DeleteSubUser(uint(id), user.HospitalID); err != nil {
+	if err := h.subUserUsecase.DeleteSubUser(uint(id), user.HospitalID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User deleted"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "SubUser deleted successfully"})
 }

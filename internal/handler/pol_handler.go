@@ -11,40 +11,43 @@ import (
 )
 
 type PolyclinicHandler struct {
-	usecase usecase.PolyclinicUsecase
-	config  *config.Config
+	polyclinicUsecase usecase.PolyclinicUsecase
+	config            *config.Config
 }
 
-func NewPolyclinicHandler(usecase usecase.PolyclinicUsecase, cfg *config.Config) *PolyclinicHandler {
+func NewPolyclinicHandler(polyclinicUsecase usecase.PolyclinicUsecase, cfg *config.Config) *PolyclinicHandler {
 	return &PolyclinicHandler{
-		usecase: usecase,
-		config:  cfg,
+		polyclinicUsecase: polyclinicUsecase,
+		config:            cfg,
 	}
 }
 
 // ListAllPolyclinics godoc
 // @Summary     Tüm poliklinikleri listeler
-// @Description Returns all polyclinics
+// @Description Tüm poliklinikleri döner
 // @Tags        Polyclinic
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Success     200 {array} dto.PolyclinicLookup
-// @Router      /api/polyclinic/all [get]
+// @Router      /api/polyclinic/ [get]
 func (h *PolyclinicHandler) ListAllPolyclinics(c *fiber.Ctx) error {
-	resp, err := h.usecase.ListAllPolyclinics()
+	polyclinics, err := h.polyclinicUsecase.ListAllPolyclinics()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(polyclinics)
 }
 
 // AddHospitalPolyclinic godoc
 // @Summary     Hastaneye poliklinik ekler
-// @Description Adds a polyclinic to the hospital
+// @Description Hastaneye yeni poliklinik ekler
 // @Tags        Polyclinic
 // @Accept      json
 // @Produce     json
-// @Param       polyclinic body dto.AddHospitalPolyclinicRequest true "Polyclinic info"
+// @Security    BearerAuth
+// @Param       hospital_polyclinic body dto.AddHospitalPolyclinicRequest true "Add hospital polyclinic info"
 // @Success     201 {object} dto.HospitalPolyclinicResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/polyclinic/add [post]
@@ -59,11 +62,10 @@ func (h *PolyclinicHandler) AddHospitalPolyclinic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.AddPolyclinicToHospital(req, user.HospitalID)
+	resp, err := h.polyclinicUsecase.AddPolyclinicToHospital(req, user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-
 	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
@@ -71,9 +73,11 @@ func (h *PolyclinicHandler) AddHospitalPolyclinic(c *fiber.Ctx) error {
 // @Summary     Hastanenin polikliniklerini listeler (sayfalı)
 // @Description Lists hospital's polyclinics with pagination
 // @Tags        Polyclinic
+// @Accept      json
 // @Produce     json
 // @Param       page query int false "Page number"
 // @Param       size query int false "Page size"
+// @Security    BearerAuth
 // @Success     200 {object} dto.HospitalPolyclinicListResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/polyclinic/list [get]
@@ -86,25 +90,26 @@ func (h *PolyclinicHandler) ListHospitalPolyclinic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.ListHospitalPolyclinic(user.HospitalID, page, size)
+	resp, err := h.polyclinicUsecase.ListHospitalPolyclinic(user.HospitalID, page, size)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-
 	return c.JSON(resp)
 }
 
 // RemoveHospitalPolyclinic godoc
-// @Summary     Hastaneden poliklinik siler
-// @Description Removes a polyclinic from the hospital
+// @Summary     Hastane polikliniğini siler
+// @Description Belirtilen hastane polikliniğini siler
 // @Tags        Polyclinic
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path int true "Hospital Polyclinic ID"
 // @Success     200 {object} map[string]string
 // @Failure     400 {object} map[string]string
-// @Router      /api/polyclinic/remove/{id} [delete]
+// @Router      /api/polyclinic/hospital-polyclinics/{id} [delete]
 func (h *PolyclinicHandler) RemoveHospitalPolyclinic(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	hospitalPolyclinicID, err := strconv.ParseUint(c.Params("id"), 10, 32)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid id"})
 	}
@@ -114,10 +119,10 @@ func (h *PolyclinicHandler) RemoveHospitalPolyclinic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	err = h.usecase.RemoveHospitalPolyclinic(uint(id), user.HospitalID)
+	err = h.polyclinicUsecase.RemoveHospitalPolyclinic(uint(hospitalPolyclinicID), user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Polyclinic removed from hospital"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Hospital polyclinic removed successfully"})
 }

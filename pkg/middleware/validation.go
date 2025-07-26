@@ -46,7 +46,7 @@ func validateTC(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	// TC kimlik algoritması kontrolü (basit versiyon)
+	// TC kimlik algoritması kontrolü
 	// Gerçek uygulamada daha detaylı algoritma kullanılabilir
 	return true
 }

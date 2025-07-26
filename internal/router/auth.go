@@ -7,6 +7,7 @@ import (
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
+	"github.com/keremdursn/hospital-case/pkg/middleware"
 )
 
 func AuthRoutes(app *fiber.App, cfg *config.Config) {
@@ -19,10 +20,9 @@ func AuthRoutes(app *fiber.App, cfg *config.Config) {
 
 	authGroup := api.Group("/auth")
 
-	authGroup.Post("/register", authHandler.Register)
-	authGroup.Post("/login", authHandler.Login)
-	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
-	authGroup.Post("/reset-password", authHandler.ResetPassword)
-	authGroup.Post("/refresh-token", authHandler.RefreshToken)
-
+	authGroup.Post("/register", middleware.AuthRateLimiter(), authHandler.Register)
+	authGroup.Post("/login", middleware.LoginRateLimiter(), authHandler.Login)
+	authGroup.Post("/forgot-password", middleware.AuthRateLimiter(), authHandler.ForgotPassword)
+	authGroup.Post("/reset-password", middleware.AuthRateLimiter(), authHandler.ResetPassword)
+	authGroup.Post("/refresh-token", middleware.AuthRateLimiter(), authHandler.RefreshToken)
 }

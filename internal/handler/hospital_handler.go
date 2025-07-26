@@ -9,22 +9,24 @@ import (
 )
 
 type HospitalHandler struct {
-	usecase usecase.HospitalUsecase
-	config  *config.Config
+	hospitalUsecase usecase.HospitalUsecase
+	config          *config.Config
 }
 
-func NewHospitalHandler(usecase usecase.HospitalUsecase, cfg *config.Config) *HospitalHandler {
+func NewHospitalHandler(hospitalUsecase usecase.HospitalUsecase, cfg *config.Config) *HospitalHandler {
 	return &HospitalHandler{
-		usecase: usecase,
-		config:  cfg,
+		hospitalUsecase: hospitalUsecase,
+		config:          cfg,
 	}
 }
 
 // GetHospitalMe godoc
-// @Summary     Giriş yapan kullanıcının hastane bilgisini getirir
-// @Description Returns the hospital info of the authenticated user
+// @Summary     Hastane bilgilerini getirir
+// @Description Mevcut hastane bilgilerini döner
 // @Tags        Hospital
+// @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Success     200 {object} dto.HospitalResponse
 // @Failure     401 {object} map[string]string
 // @Failure     404 {object} map[string]string
@@ -34,20 +36,23 @@ func (h *HospitalHandler) GetHospitalMe(c *fiber.Ctx) error {
 	if user == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	resp, err := h.usecase.GetHospitalByID(user.HospitalID)
+
+	hospital, err := h.hospitalUsecase.GetHospitalByID(user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(resp)
+
+	return c.Status(fiber.StatusOK).JSON(hospital)
 }
 
 // UpdateHospitalMe godoc
-// @Summary     Giriş yapan kullanıcının hastane bilgisini günceller
-// @Description Updates the hospital info of the authenticated user
+// @Summary     Hastane bilgilerini günceller
+// @Description Mevcut hastane bilgilerini günceller
 // @Tags        Hospital
 // @Accept      json
 // @Produce     json
-// @Param       hospital body dto.UpdateHospitalRequest true "Hospital update info"
+// @Security    BearerAuth
+// @Param       update body dto.UpdateHospitalRequest true "Update hospital info"
 // @Success     200 {object} dto.HospitalResponse
 // @Failure     400 {object} map[string]string
 // @Failure     401 {object} map[string]string
@@ -61,9 +66,11 @@ func (h *HospitalHandler) UpdateHospitalMe(c *fiber.Ctx) error {
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
-	resp, err := h.usecase.UpdateHospital(user.HospitalID, req)
+
+	hospital, err := h.hospitalUsecase.UpdateHospital(user.HospitalID, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(resp)
+
+	return c.JSON(hospital)
 }
