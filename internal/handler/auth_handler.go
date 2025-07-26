@@ -163,15 +163,13 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 // @Tags        Authentication
 // @Accept      json
 // @Produce     json
-// @Param       refreshToken body struct{RefreshToken string `json:"refresh_token"`} true "Refresh token bilgisi"
-// @Success     200 {object} struct{AccessToken string `json:"access_token"`; RefreshToken string `json:"refresh_token"`; ExpiresIn int64 `json:"expires_in"`}
+// @Param       refreshToken body dto.RefreshTokenRequest true "Refresh token bilgisi"
+// @Success     200 {object} dto.RefreshTokenResponse
 // @Failure     400 {object} map[string]string
 // @Failure     401 {object} map[string]string
 // @Router      /api/auth/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
+	var req dto.RefreshTokenRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		metrics.RefreshTokenFailCounter.Inc()
@@ -196,10 +194,10 @@ func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 	}
 	metrics.RefreshTokenSuccessCounter.Inc()
 
-	return c.JSON(fiber.Map{
-		"access_token":  tokenPair.AccessToken,
-		"refresh_token": tokenPair.RefreshToken,
-		"expires_in":    tokenPair.ExpiresIn,
+	return c.JSON(dto.RefreshTokenResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
 	})
 }
 

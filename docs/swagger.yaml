@@ -126,6 +126,29 @@ definitions:
       polyclinic_name:
         type: string
     type: object
+  dto.HospitalResponse:
+    properties:
+      address:
+        type: string
+      city_id:
+        type: integer
+      city_name:
+        type: string
+      district_id:
+        type: integer
+      district_name:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      tax_number:
+        type: string
+    type: object
   dto.JobGroupLookup:
     properties:
       id:
@@ -142,7 +165,11 @@ definitions:
     type: object
   dto.LoginResponse:
     properties:
-      token:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
         type: string
     type: object
   dto.PolyclinicLookup:
@@ -157,6 +184,20 @@ definitions:
       count:
         type: integer
       group_name:
+        type: string
+    type: object
+  dto.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  dto.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
         type: string
     type: object
   dto.RegisterRequest:
@@ -263,6 +304,23 @@ definitions:
       name:
         type: string
     type: object
+  dto.UpdateHospitalRequest:
+    properties:
+      address:
+        type: string
+      city_id:
+        type: integer
+      district_id:
+        type: integer
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      tax_number:
+        type: string
+    type: object
   dto.UpdateStaffRequest:
     properties:
       first_name:
@@ -363,6 +421,40 @@ paths:
               type: string
             type: object
       summary: Kullanıcı girişi
+      tags:
+      - Authentication
+  /api/auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Geçerli bir refresh token ile yeni access ve refresh token döner
+      parameters:
+      - description: Refresh token bilgisi
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RefreshTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: JWT yenileme
       tags:
       - Authentication
   /api/auth/register:
@@ -471,6 +563,64 @@ paths:
       summary: Seçili ile ait ilçeleri listeler
       tags:
       - Location
+  /api/hospital/me:
+    get:
+      description: Returns the hospital info of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.HospitalResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Giriş yapan kullanıcının hastane bilgisini getirir
+      tags:
+      - Hospital
+    put:
+      consumes:
+      - application/json
+      description: Updates the hospital info of the authenticated user
+      parameters:
+      - description: Hospital update info
+        in: body
+        name: hospital
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateHospitalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.HospitalResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Giriş yapan kullanıcının hastane bilgisini günceller
+      tags:
+      - Hospital
   /api/personnel/job-groups:
     get:
       description: Returns all job groups
