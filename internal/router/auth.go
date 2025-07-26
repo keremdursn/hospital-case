@@ -23,7 +23,6 @@ func AuthRoutes(app *fiber.App, cfg *config.Config) {
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
 	authGroup.Post("/reset-password", authHandler.ResetPassword)
+	authGroup.Post("/refresh-token", authHandler.RefreshToken)
 
-	// Sub-user management (only for 'yetkili')
-	// api.Post("/users", utils.AuthRequired(cfg), utils.RequireRole("yetkili"), authHandler.CreateSubUser)
 }

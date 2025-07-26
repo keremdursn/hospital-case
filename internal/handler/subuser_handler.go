@@ -59,13 +59,13 @@ func (h *SubUserHandler) CreateSubUser(c *fiber.Ctx) error {
 // @Success     200 {array} dto.SubUserResponse
 // @Failure     400 {object} map[string]string
 // @Router      /api/subuser [get]
-func (h *SubUserHandler) ListSubUsers(c *fiber.Ctx) error {
+func (h *SubUserHandler) ListUsers(c *fiber.Ctx) error {
 	user := utils.GetUserInfo(c)
 	if user == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	resp, err := h.usecase.ListSubUsers(user.HospitalID)
+	resp, err := h.usecase.ListUsers(user.HospitalID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

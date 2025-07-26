@@ -3,11 +3,13 @@ package handler
 import (
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/usecase"
 	"github.com/keremdursn/hospital-case/pkg/metrics"
+	"github.com/keremdursn/hospital-case/pkg/middleware"
 	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
@@ -40,6 +42,47 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		metrics.RegisterFailCounter.Inc()
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse request",
+		})
+	}
+
+	// Validation yap
+	if err := middleware.ValidateStruct(&req); err != nil {
+		metrics.RegisterFailCounter.Inc()
+		var errors []string
+		for _, validationErr := range err.(validator.ValidationErrors) {
+			field := validationErr.Field()
+			tag := validationErr.Tag()
+			param := validationErr.Param()
+
+			var message string
+			switch tag {
+			case "required":
+				message = field + " is required"
+			case "email":
+				message = field + " must be a valid email"
+			case "min":
+				message = field + " must be at least " + param + " characters"
+			case "max":
+				message = field + " must be at most " + param + " characters"
+			case "len":
+				message = field + " must be exactly " + param + " characters"
+			case "gt":
+				message = field + " must be greater than " + param
+			case "tc":
+				message = field + " must be a valid TC identity number"
+			case "phone":
+				message = field + " must be a valid phone number"
+			case "password":
+				message = field + " must contain uppercase, lowercase and digit"
+			default:
+				message = field + " is invalid"
+			}
+			errors = append(errors, message)
+		}
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Validation failed",
+			"details": errors,
 		})
 	}
 

@@ -11,7 +11,7 @@ import (
 
 type SubUserUsecase interface {
 	CreateSubUser(req *dto.CreateSubUserRequest, hospitalID uint) (*dto.SubUserResponse, error)
-	ListSubUsers(hospitalID uint) ([]dto.SubUserResponse, error)
+	ListUsers(hospitalID uint) ([]dto.SubUserResponse, error)
 	UpdateSubUser(id uint, req *dto.UpdateSubUserRequest, hospitalID uint) (*dto.SubUserResponse, error)
 	DeleteSubUser(id, hospitalID uint) error
 }
@@ -68,7 +68,7 @@ func (u *subUserUsecase) CreateSubUser(req *dto.CreateSubUserRequest, hospitalID
 	}, nil
 }
 
-func (u *subUserUsecase) ListSubUsers(hospitalID uint) ([]dto.SubUserResponse, error) {
+func (u *subUserUsecase) ListUsers(hospitalID uint) ([]dto.SubUserResponse, error) {
 	users, err := u.repo.GetAllSubUsersByHospitalID(hospitalID)
 	if err != nil {
 		return nil, err

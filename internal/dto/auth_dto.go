@@ -3,19 +3,19 @@ package dto
 import "time"
 
 type RegisterRequest struct {
-	HospitalName   string `json:"hospital_name"`
-	TaxNumber      string `json:"tax_number"`
-	HospitalEmail  string `json:"hospital_email"`
-	HospitalPhone  string `json:"hospital_phone"`
-	Address        string `json:"address"`
-	CityID         uint   `json:"city_id"`
-	DistrictID     uint   `json:"district_id"`
-	AuthorityFName string `json:"authority_fname"`
-	AuthorityLName string `json:"authority_lname"`
-	AuthorityTC    string `json:"authority_tc"`
-	AuthorityEmail string `json:"authority_email"`
-	AuthorityPhone string `json:"authority_phone"`
-	Password       string `json:"password"`
+	HospitalName   string `json:"hospital_name" validate:"required,min=2,max=100"`
+	TaxNumber      string `json:"tax_number" validate:"required,len=10"`
+	HospitalEmail  string `json:"hospital_email" validate:"required,email"`
+	HospitalPhone  string `json:"hospital_phone" validate:"required,phone"`
+	Address        string `json:"address" validate:"required,min=10,max=200"`
+	CityID         uint   `json:"city_id" validate:"required,gt=0"`
+	DistrictID     uint   `json:"district_id" validate:"required,gt=0"`
+	AuthorityFName string `json:"authority_fname" validate:"required,min=2,max=50"`
+	AuthorityLName string `json:"authority_lname" validate:"required,min=2,max=50"`
+	AuthorityTC    string `json:"authority_tc" validate:"required,tc"`
+	AuthorityEmail string `json:"authority_email" validate:"required,email"`
+	AuthorityPhone string `json:"authority_phone" validate:"required,phone"`
+	Password       string `json:"password" validate:"required,password"`
 }
 
 type LoginRequest struct {
