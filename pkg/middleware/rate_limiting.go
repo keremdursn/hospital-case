@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/keremdursn/hospital-case/pkg/errs"
 	"github.com/keremdursn/hospital-case/pkg/metrics"
 )
 
@@ -20,7 +19,9 @@ func AuthRateLimiter() fiber.Handler {
 		LimitReached: func(c *fiber.Ctx) error {
 			// Rate limit metriklerini artır
 			metrics.RateLimitExceededCounter.WithLabelValues("auth", c.IP()).Inc()
-			return errs.SendErrorResponse(c, errs.ErrTooManyRequests)
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Too many requests. Please try again later.",
+			})
 		},
 	})
 }
@@ -36,7 +37,9 @@ func LoginRateLimiter() fiber.Handler {
 		LimitReached: func(c *fiber.Ctx) error {
 			// Rate limit metriklerini artır
 			metrics.RateLimitExceededCounter.WithLabelValues("login", c.IP()).Inc()
-			return errs.SendErrorResponse(c, errs.ErrTooManyRequests)
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Too many login attempts. Please try again in 5 minutes.",
+			})
 		},
 	})
 }
@@ -52,7 +55,9 @@ func GeneralRateLimiter() fiber.Handler {
 		LimitReached: func(c *fiber.Ctx) error {
 			// Rate limit metriklerini artır
 			metrics.RateLimitExceededCounter.WithLabelValues("general", c.IP()).Inc()
-			return errs.SendErrorResponse(c, errs.ErrTooManyRequests)
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Rate limit exceeded. Please try again later.",
+			})
 		},
 	})
 }
@@ -68,7 +73,9 @@ func AdminRateLimiter() fiber.Handler {
 		LimitReached: func(c *fiber.Ctx) error {
 			// Rate limit metriklerini artır
 			metrics.RateLimitExceededCounter.WithLabelValues("admin", c.IP()).Inc()
-			return errs.SendErrorResponse(c, errs.ErrTooManyRequests)
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Admin rate limit exceeded.",
+			})
 		},
 	})
 }

@@ -120,7 +120,6 @@ func (u *polyclinicUsecase) ListHospitalPolyclinic(hospitalID uint, page, size i
 			TotalPersonnel:  int(totalPersonnel),
 			PersonnelGroups: personnelGroups,
 		})
-
 	}
 
 	return &dto.HospitalPolyclinicListResponse{
@@ -141,5 +140,4 @@ func (u *polyclinicUsecase) RemoveHospitalPolyclinic(id uint, hospitalID uint) e
 		return errors.New("forbidden: cannot remove polyclinic from another hospital")
 	}
 	return u.repo.Delete(hp)
-
 }

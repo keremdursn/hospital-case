@@ -9,7 +9,7 @@ import (
 )
 
 func PersonnelRoutes(deps RouterDeps) {
-	// db := database.GetDB()
+
 	personnelRepo := repository.NewPersonnelRepository(deps.DB.SQL)
 	personnelUsecase := usecase.NewPersonnelUsecase(personnelRepo, deps.DB.Redis)
 	personnelHandler := handler.NewPersonnelHandler(personnelUsecase, deps.Config)

@@ -245,6 +245,3 @@ func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 	})
 }
 
-func (h *AuthHandler) Config() *config.Config {
-	return h.config
-}

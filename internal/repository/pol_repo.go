@@ -45,7 +45,6 @@ func (r *polyclinicRepository) IsPolyclinicAlreadyAdded(hospitalID, PolyclinicID
 		Where("hospital_id = ? AND polyclinic_id = ?", hospitalID, PolyclinicID).
 		Count(&count).Error
 	return count > 0, err
-
 }
 
 func (r *polyclinicRepository) GetPolyclinicByID(PolyclinicID uint) (*models.Polyclinic, error) {

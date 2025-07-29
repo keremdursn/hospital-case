@@ -103,10 +103,10 @@ func (u *subUserUsecase) UpdateSubUser(id uint, req *dto.UpdateSubUserRequest, h
 		return nil, errors.New("role must be 'yetkili' or 'calisan'")
 	}
 
-	//isUnique, err := u.repo.IsUniqueForUpdate(id, req.TC, req.Email, req.Phone)
-	//if err != nil || !isUnique {
-	//	return nil, errors.New("another user with given TC, email, or phone already exists")
-	//}
+	isUnique, err := u.repo.IsUniqueForUpdate(id, req.TC, req.Email, req.Phone)
+	if err != nil || !isUnique {
+		return nil, errors.New("another user with given TC, email, or phone already exists")
+	}
 
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
@@ -143,6 +143,7 @@ func (u *subUserUsecase) DeleteSubUser(id, hospitalID uint) error {
 	if err != nil {
 		return errors.New("user not found")
 	}
+	
 	if user.HospitalID != hospitalID {
 		return errors.New("forbidden: cannot delete user from another hospital")
 	}

@@ -8,7 +8,6 @@ import (
 )
 
 func AuthRoutes(deps RouterDeps) {
-	// db := database.GetDB()
 	authRepo := repository.NewAuthRepository(deps.DB.SQL)
 	authUsecase := usecase.NewAuthUsecase(authRepo, deps.DB.Redis)
 	authHandler := handler.NewAuthHandler(authUsecase, deps.Config)

@@ -9,7 +9,7 @@ import (
 )
 
 func SubUserRoutes(deps RouterDeps) {
-	// db := database.GetDB()
+
 	subuserRepo := repository.NewSubUserRepository(deps.DB.SQL)
 	subuserUsecase := usecase.NewSubUserUsecase(subuserRepo)
 	subuserHandler := handler.NewSubUserHandler(subuserUsecase, deps.Config)

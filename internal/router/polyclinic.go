@@ -9,7 +9,7 @@ import (
 )
 
 func PolyclinicRoutes(deps RouterDeps) {
-	// db := database.GetDB()
+
 	polyclinicRepo := repository.NewPolyclinicRepository(deps.DB.SQL)
 	polyclinicUsecase := usecase.NewPolyclinicUsecase(polyclinicRepo)
 	polyclinicHandler := handler.NewPolyclinicHandler(polyclinicUsecase, deps.Config)

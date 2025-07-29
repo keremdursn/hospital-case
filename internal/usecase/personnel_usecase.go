@@ -64,7 +64,6 @@ func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
 	if data, err := json.Marshal(resp); err == nil {
 		_ = u.redis.Set(ctx, cacheKey, data, 0).Err() // Hata olursa cache'siz devam et
 	}
-
 	return resp, nil
 }
 
@@ -81,6 +80,7 @@ func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLook
 		}
 	}
 
+	// Yoksa DB'den çek
 	titles, err := u.repo.GetAllTitlesByJobGroup(jobGroupID)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,6 @@ func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLook
 	if data, err := json.Marshal(resp); err == nil {
 		_ = u.redis.Set(ctx, cacheKey, data, 0).Err()
 	}
-
 	return resp, nil
 }
 

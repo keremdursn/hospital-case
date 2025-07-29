@@ -9,7 +9,6 @@ import (
 )
 
 func HospitalRoutes(deps RouterDeps) {
-	// db := database.GetDB()
 	hRepo := repository.NewHospitalRepository(deps.DB.SQL)
 	hUsecase := usecase.NewHospitalUsecase(hRepo)
 	hHandler := handler.NewHospitalHandler(hUsecase, deps.Config)
