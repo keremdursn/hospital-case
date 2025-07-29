@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/models"
+	"gorm.io/gorm"
 )
 
 type LocationRepository interface {
@@ -11,15 +11,18 @@ type LocationRepository interface {
 }
 
 type locationRepository struct {
+	db *gorm.DB
 }
 
-func NewLocationRepository() LocationRepository {
-	return &locationRepository{}
+func NewLocationRepository(db *gorm.DB) LocationRepository {
+	return &locationRepository{
+		db: db,
+	}
 }
 
 func (r *locationRepository) GetAllCities() ([]models.City, error) {
 	var cities []models.City
-	if err := database.DB.Find(&cities).Error; err != nil {
+	if err := r.db.Find(&cities).Error; err != nil {
 		return nil, err
 	}
 	return cities, nil
@@ -27,7 +30,7 @@ func (r *locationRepository) GetAllCities() ([]models.City, error) {
 
 func (r *locationRepository) GetDistrictsByCity(cityID uint) ([]models.District, error) {
 	var districts []models.District
-	if err := database.DB.Where("city_id = ?", cityID).Find(&districts).Error; err != nil {
+	if err := r.db.Where("city_id = ?", cityID).Find(&districts).Error; err != nil {
 		return nil, err
 	}
 	return districts, nil

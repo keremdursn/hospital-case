@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/keremdursn/hospital-case/internal/database"
+	"github.com/go-redis/redis/v8"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/repository"
@@ -22,11 +22,15 @@ type PersonnelUsecase interface {
 }
 
 type personnelUsecase struct {
-	repo repository.PersonnelRepository
+	repo  repository.PersonnelRepository
+	redis *redis.Client
 }
 
-func NewPersonnelUsecase(repo repository.PersonnelRepository) PersonnelUsecase {
-	return &personnelUsecase{repo: repo}
+func NewPersonnelUsecase(repo repository.PersonnelRepository, redis *redis.Client) PersonnelUsecase {
+	return &personnelUsecase{
+		repo:  repo,
+		redis: redis,
+	}
 }
 
 func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
@@ -34,7 +38,7 @@ func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
 	cacheKey := "job_groups"
 
 	// Önce Redis'te var mı bak
-	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	cached, err := u.redis.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		var resp []dto.JobGroupLookup
 		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
@@ -58,7 +62,7 @@ func (u *personnelUsecase) ListAllJobGroups() ([]dto.JobGroupLookup, error) {
 
 	// 3. Redis'e yaz
 	if data, err := json.Marshal(resp); err == nil {
-		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err() // Hata olursa cache'siz devam et
+		_ = u.redis.Set(ctx, cacheKey, data, 0).Err() // Hata olursa cache'siz devam et
 	}
 
 	return resp, nil
@@ -69,7 +73,7 @@ func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLook
 	cacheKey := "titles_by_jobgroup_" + string(rune(jobGroupID))
 
 	// Önce Redis'te var mı bak
-	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	cached, err := u.redis.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		var resp []dto.TitleLookup
 		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
@@ -92,7 +96,7 @@ func (u *personnelUsecase) ListTitleByJobGroup(jobGroupID uint) ([]dto.TitleLook
 
 	// Redis'e yaz
 	if data, err := json.Marshal(resp); err == nil {
-		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err()
+		_ = u.redis.Set(ctx, cacheKey, data, 0).Err()
 	}
 
 	return resp, nil

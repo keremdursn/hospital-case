@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"gorm.io/gorm"
@@ -76,7 +75,7 @@ func (r *personnelRepository) GetTitleByID(id uint) (*models.Title, error) {
 
 func (r *personnelRepository) CountHospitalHeads(hospitalID uint) (int64, error) {
 	var count int64
-	err := database.DB.Table("staffs").
+	err := r.db.Table("staffs").
 		Joins("JOIN titles ON staffs.title_id = titles.id").
 		Where("titles.name = ? AND staffs.hospital_id = ?", "Başhekim", hospitalID).
 		Count(&count).Error

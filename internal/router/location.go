@@ -1,20 +1,19 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
 	"github.com/keremdursn/hospital-case/pkg/middleware"
 )
 
-func LocationRoutes(app *fiber.App) {
+func LocationRoutes(deps RouterDeps) {
 
-	locationRepo := repository.NewLocationRepository()
-	locationUsecase := usecase.NewLocationUsecase(locationRepo)
+	locationRepo := repository.NewLocationRepository(deps.DB.SQL)
+	locationUsecase := usecase.NewLocationUsecase(locationRepo, deps.DB.Redis)
 	locationHandler := handler.NewLocationHandler(locationUsecase)
 
-	api := app.Group("/api")
+	api := deps.App.Group("/api")
 
 	locationGroup := api.Group("/location")
 

@@ -1,9 +1,6 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/keremdursn/hospital-case/internal/config"
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
@@ -11,18 +8,18 @@ import (
 	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
-func SubUserRoutes(app *fiber.App, cfg *config.Config) {
-	db := database.GetDB()
-	subuserRepo := repository.NewSubUserRepository(db)
+func SubUserRoutes(deps RouterDeps) {
+	// db := database.GetDB()
+	subuserRepo := repository.NewSubUserRepository(deps.DB.SQL)
 	subuserUsecase := usecase.NewSubUserUsecase(subuserRepo)
-	subuserHandler := handler.NewSubUserHandler(subuserUsecase, cfg)
+	subuserHandler := handler.NewSubUserHandler(subuserUsecase, deps.Config)
 
-	api := app.Group("/api")
+	api := deps.App.Group("/api")
 
 	subuserGroup := api.Group("/subuser")
 
-	subuserGroup.Post("/", middleware.AdminRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.CreateSubUser)
-	subuserGroup.Get("/users", middleware.GeneralRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.ListUsers)
-	subuserGroup.Put("/:id", middleware.AdminRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.UpdateSubUser)
-	subuserGroup.Delete("/:id", middleware.AdminRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), subuserHandler.DeleteSubUser)
+	subuserGroup.Post("/", middleware.AdminRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), subuserHandler.CreateSubUser)
+	subuserGroup.Get("/users", middleware.GeneralRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), subuserHandler.ListUsers)
+	subuserGroup.Put("/:id", middleware.AdminRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), subuserHandler.UpdateSubUser)
+	subuserGroup.Delete("/:id", middleware.AdminRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), subuserHandler.DeleteSubUser)
 }

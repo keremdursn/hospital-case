@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/keremdursn/hospital-case/internal/config"
 	"github.com/keremdursn/hospital-case/internal/database"
-	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/router"
 
 	_ "github.com/keremdursn/hospital-case/docs"
@@ -24,22 +23,14 @@ func main() {
 	}
 
 	// Connect to database
-	database.Connect(&cfg)
-	database.ConnectRedis(&cfg)
-
-	err = database.DB.AutoMigrate(
-		&models.City{},
-		&models.District{},
-		&models.Hospital{},
-		&models.Authority{},
-		&models.Polyclinic{},
-		&models.HospitalPolyclinic{},
-		&models.JobGroup{},
-		&models.Title{},
-		&models.Staff{},
-	)
+	dbInstance, err := database.NewDatabase(&cfg)
 	if err != nil {
-		log.Fatal("cannot migrate database: ", err)
+		log.Fatalf("cannot connect to database: %v", err)
+	}
+
+	// Migration
+	if err := database.RunMigrations(dbInstance.SQL); err != nil {
+		log.Fatalf("migration failed: %v", err)
 	}
 
 	app := fiber.New()
@@ -49,12 +40,18 @@ func main() {
 
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
-	router.AuthRoutes(app, &cfg)
-	router.HospitalRoutes(app, &cfg)
-	router.SubUserRoutes(app, &cfg)
-	router.PolyclinicRoutes(app, &cfg)
-	router.PersonnelRoutes(app, &cfg)
-	router.LocationRoutes(app)
+	deps := router.RouterDeps{
+		App:    app,
+		DB:     dbInstance,
+		Config: &cfg,
+	}
+
+	router.AuthRoutes(deps)
+	router.HospitalRoutes(deps)
+	router.SubUserRoutes(deps)
+	router.PolyclinicRoutes(deps)
+	router.PersonnelRoutes(deps)
+	router.LocationRoutes(deps)
 
 	for _, r := range app.GetRoutes() {
 		fmt.Println(r.Method, r.Path)

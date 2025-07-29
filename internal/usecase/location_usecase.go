@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/keremdursn/hospital-case/internal/database"
+	"github.com/go-redis/redis/v8"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/repository"
 )
@@ -15,18 +15,22 @@ type LocationUsecase interface {
 }
 
 type locationUsecase struct {
-	repo repository.LocationRepository
+	repo  repository.LocationRepository
+	redis *redis.Client
 }
 
-func NewLocationUsecase(repo repository.LocationRepository) LocationUsecase {
-	return &locationUsecase{repo: repo}
+func NewLocationUsecase(repo repository.LocationRepository, redis *redis.Client) LocationUsecase {
+	return &locationUsecase{
+		repo:  repo,
+		redis: redis,
+	}
 }
 
 func (u *locationUsecase) ListAllCities() ([]dto.CityLookup, error) {
 	ctx := context.Background()
 	cacheKey := "cities"
 
-	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	cached, err := u.redis.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		var resp []dto.CityLookup
 		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
@@ -48,7 +52,7 @@ func (u *locationUsecase) ListAllCities() ([]dto.CityLookup, error) {
 	}
 
 	if data, err := json.Marshal(resp); err == nil {
-		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err()
+		_ = u.redis.Set(ctx, cacheKey, data, 0).Err()
 	}
 
 	return resp, nil
@@ -58,7 +62,7 @@ func (u *locationUsecase) ListDistrictsByCity(cityID uint) ([]dto.DistrictLookup
 	ctx := context.Background()
 	cacheKey := "districts_by_city_" + string(rune(cityID))
 
-	cached, err := database.RDB.Get(ctx, cacheKey).Result()
+	cached, err := u.redis.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
 		var resp []dto.DistrictLookup
 		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
@@ -81,7 +85,7 @@ func (u *locationUsecase) ListDistrictsByCity(cityID uint) ([]dto.DistrictLookup
 	}
 
 	if data, err := json.Marshal(resp); err == nil {
-		_ = database.RDB.Set(ctx, cacheKey, data, 0).Err()
+		_ = u.redis.Set(ctx, cacheKey, data, 0).Err()
 	}
 
 	return resp, nil

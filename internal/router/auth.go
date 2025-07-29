@@ -1,22 +1,19 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/keremdursn/hospital-case/internal/config"
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
 	"github.com/keremdursn/hospital-case/pkg/middleware"
 )
 
-func AuthRoutes(app *fiber.App, cfg *config.Config) {
-	db := database.GetDB()
-	authRepo := repository.NewAuthRepository(db)
-	authUsecase := usecase.NewAuthUsecase(authRepo)
-	authHandler := handler.NewAuthHandler(authUsecase, cfg)
+func AuthRoutes(deps RouterDeps) {
+	// db := database.GetDB()
+	authRepo := repository.NewAuthRepository(deps.DB.SQL)
+	authUsecase := usecase.NewAuthUsecase(authRepo, deps.DB.Redis)
+	authHandler := handler.NewAuthHandler(authUsecase, deps.Config)
 
-	api := app.Group("/api")
+	api := deps.App.Group("/api")
 
 	authGroup := api.Group("/auth")
 

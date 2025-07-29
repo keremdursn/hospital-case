@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/keremdursn/hospital-case/internal/config"
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/dto"
 	"github.com/keremdursn/hospital-case/internal/models"
 	"github.com/keremdursn/hospital-case/internal/repository"
@@ -23,10 +23,14 @@ type AuthUsecase interface {
 
 type authUsecase struct {
 	authRepo repository.AuthRepository
+	redis    *redis.Client
 }
 
-func NewAuthUsecase(r repository.AuthRepository) AuthUsecase {
-	return &authUsecase{authRepo: r}
+func NewAuthUsecase(r repository.AuthRepository, redis *redis.Client) AuthUsecase {
+	return &authUsecase{
+		authRepo: r,
+		redis:    redis,
+	}
 }
 
 func (u *authUsecase) Register(req *dto.RegisterRequest) (*models.Authority, error) {
@@ -114,7 +118,7 @@ func (u *authUsecase) ForgotPassword(req *dto.ForgotPasswordRequest) (*dto.Forgo
 	code := utils.GenerateResetCode()
 
 	ctx := context.Background()
-	if err := database.RDB.Set(ctx, "reset_code:"+req.Phone, code, 5*time.Minute).Err(); err != nil {
+	if err := u.redis.Set(ctx, "reset_code:"+req.Phone, code, 5*time.Minute).Err(); err != nil {
 		return nil, err
 	}
 
@@ -127,7 +131,7 @@ func (u *authUsecase) ResetPassword(req *dto.ResetPasswordRequest) error {
 	}
 
 	ctx := context.Background()
-	storedCode, err := database.RDB.Get(ctx, "reset_code:"+req.Phone).Result()
+	storedCode, err := u.redis.Get(ctx, "reset_code:"+req.Phone).Result()
 	if err != nil || storedCode != req.Code {
 		return errors.New("invalid or expired code")
 	}
@@ -146,6 +150,6 @@ func (u *authUsecase) ResetPassword(req *dto.ResetPasswordRequest) error {
 		return err
 	}
 
-	_ = database.RDB.Del(ctx, "reset_code:"+req.Phone).Err()
+	_ = u.redis.Del(ctx, "reset_code:"+req.Phone).Err()
 	return nil
 }

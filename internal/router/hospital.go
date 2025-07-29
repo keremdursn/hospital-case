@@ -1,9 +1,6 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/keremdursn/hospital-case/internal/config"
-	"github.com/keremdursn/hospital-case/internal/database"
 	"github.com/keremdursn/hospital-case/internal/handler"
 	"github.com/keremdursn/hospital-case/internal/repository"
 	"github.com/keremdursn/hospital-case/internal/usecase"
@@ -11,16 +8,16 @@ import (
 	"github.com/keremdursn/hospital-case/pkg/utils"
 )
 
-func HospitalRoutes(app *fiber.App, cfg *config.Config) {
-	db := database.GetDB()
-	hRepo := repository.NewHospitalRepository(db)
+func HospitalRoutes(deps RouterDeps) {
+	// db := database.GetDB()
+	hRepo := repository.NewHospitalRepository(deps.DB.SQL)
 	hUsecase := usecase.NewHospitalUsecase(hRepo)
-	hHandler := handler.NewHospitalHandler(hUsecase, cfg)
+	hHandler := handler.NewHospitalHandler(hUsecase, deps.Config)
 
-	api := app.Group("/api")
+	api := deps.App.Group("/api")
 
 	hGroup := api.Group("/hospital")
 
-	hGroup.Get("/me", middleware.GeneralRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.GetHospitalMe)
-	hGroup.Put("/me", middleware.AdminRateLimiter(), utils.AuthRequired(cfg), utils.RequireRole("yetkili"), hHandler.UpdateHospitalMe)
+	hGroup.Get("/me", middleware.GeneralRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), hHandler.GetHospitalMe)
+	hGroup.Put("/me", middleware.AdminRateLimiter(), utils.AuthRequired(deps.Config), utils.RequireRole("yetkili"), hHandler.UpdateHospitalMe)
 }
