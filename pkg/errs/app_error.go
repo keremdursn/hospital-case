@@ -2,9 +2,11 @@ package errs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 type AppError struct {
@@ -61,12 +63,26 @@ func SendErrorResponseWithDetails(c *fiber.Ctx, appErr *AppError, details interf
 	return c.Status(appErr.StatusCode).JSON(response)
 }
 
-// HandleError Genel error'ı AppError'a çevirir ve response gönderir
+// // HandleError Genel error'ı AppError'a çevirir ve response gönderir
+// func HandleError(c *fiber.Ctx, err error) error {
+// 	if appErr, ok := err.(*AppError); ok {
+// 		return SendErrorResponse(c, appErr)
+// 	}
+
+// 	// Genel error için internal server error döner
+// 	return SendErrorResponse(c, ErrInternal)
+// }
+
 func HandleError(c *fiber.Ctx, err error) error {
-	if appErr, ok := err.(*AppError); ok {
+	var appErr *AppError
+	if errors.As(err, &appErr) {
 		return SendErrorResponse(c, appErr)
 	}
 
-	// Genel error için internal server error döner
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return SendErrorResponse(c, ErrNotFound)
+	}
+
+	// Diğer bilinmeyen hata
 	return SendErrorResponse(c, ErrInternal)
 }

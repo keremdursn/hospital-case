@@ -7,6 +7,7 @@ var (
 	ErrHospitalExists       = NewAppError("ERR_HOSPITAL_EXISTS", "Hospital already exists", 409, nil)
 	ErrAuthorityExists      = NewAppError("ERR_AUTHORITY_EXISTS", "Authority already exists", 409, nil)
 	ErrPasswordsMismatch    = NewAppError("ERR_PASSWORDS_MISMATCH", "Passwords do not match", 400, nil)
+	ErrRedis                = NewAppError("ERR_REDIS", "Failed to set reset code", 500, nil)
 	ErrInvalidResetCode     = NewAppError("ERR_INVALID_RESET_CODE", "Invalid or expired reset code", 400, nil)
 	ErrInvalidRefreshToken  = NewAppError("ERR_INVALID_REFRESH_TOKEN", "Invalid refresh token", 401, nil)
 	ErrRefreshTokenRequired = NewAppError("ERR_REFRESH_TOKEN_REQUIRED", "Refresh token is required", 400, nil)
